@@ -10,9 +10,11 @@ cd claude-config
 ./install.sh
 ```
 
-This symlinks `CLAUDE.md`, the `hooks/`, and the `skills/` into `~/.claude/`, then merges the
+This symlinks `CLAUDE.md`, the `hooks/`, and the `skills/` into `~/.claude/`, so editing the
+installed path edits the repo file directly and they can't drift out of sync, then merges the
 `PreToolUse` hook entries into `~/.claude/settings.json` (creating it if it doesn't exist yet, or
-adding just the missing hook entries without touching any other settings already there).
+adding just the missing hook entries without touching any other settings already there, since
+that file also holds machine-local preferences like model/theme that shouldn't be forced identical).
 
 ## What's in here
 
