@@ -14,13 +14,23 @@ if not target_path.exists():
 
 target = json.loads(target_path.read_text())
 
+target_groups = target.setdefault("hooks", {}).setdefault("PreToolUse", [])
+target_groups_by_matcher = {g["matcher"]: g for g in target_groups}
+
 for matcher_group in example["hooks"]["PreToolUse"]:
-    existing_matchers = [g["matcher"] for g in target.setdefault("hooks", {}).setdefault("PreToolUse", [])]
-    if matcher_group["matcher"] not in existing_matchers:
-        target["hooks"]["PreToolUse"].append(matcher_group)
-        print(f"Added PreToolUse hook for matcher '{matcher_group['matcher']}'")
-    else:
-        print(f"PreToolUse hook for matcher '{matcher_group['matcher']}' already present, left as-is")
+    matcher = matcher_group["matcher"]
+    if matcher not in target_groups_by_matcher:
+        target_groups.append(matcher_group)
+        print(f"Added PreToolUse hook group for matcher '{matcher}'")
+        continue
+
+    existing_commands = [h["command"] for h in target_groups_by_matcher[matcher]["hooks"]]
+    for hook in matcher_group["hooks"]:
+        if hook["command"] not in existing_commands:
+            target_groups_by_matcher[matcher]["hooks"].append(hook)
+            print(f"Added PreToolUse hook command for matcher '{matcher}': {hook['command']}")
+        else:
+            print(f"PreToolUse hook command already present for matcher '{matcher}', left as-is: {hook['command']}")
 
 target_path.write_text(json.dumps(target, indent=2) + "\n")
 print(f"Merged into {target_path} (effortLevel/tui/attribution left untouched — set those yourself if wanted)")
