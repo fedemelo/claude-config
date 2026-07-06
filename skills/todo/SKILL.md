@@ -7,7 +7,7 @@ When instructed to create a todo, issue, or track a task/bug on GitHub, run `git
 
 Usage: `git todo "<title>" [-b|--body "<body>"]`
 
-- Title is required; use the user's wording or a succinct summary of what they described.
-- Body is optional — only include it if the user gave real detail worth preserving; don't pad a one-line todo with an invented description.
+- Title is required; use the user's wording or a succinct summary of what they described. Write it in English regardless of the language of the surrounding project/content.
+- Body is optional — only include it if the user gave real detail worth preserving; don't pad a one-line todo with an invented description. Write it in English as well.
 - The tool auto-assigns the issue to the authenticated user and prints the issue number along with a reminder to reference `Fixes #<N>` in a commit message.
 - To actually close the issue later, put `Fixes #<N>` in the commit message of the change that resolves it, then land that commit via the [[land]] skill — GitHub auto-closes issues referenced this way once the commit reaches the default branch.
