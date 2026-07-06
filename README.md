@@ -16,6 +16,10 @@ installed path edits the repo file directly and they can't drift out of sync, th
 adding just the missing hook entries without touching any other settings already there, since
 that file also holds machine-local preferences like model/theme that shouldn't be forced identical).
 
+## Prerequisite: git-tools
+
+The `land` / `todo` skills need the `git-land` / `git-todo` executables from [git-tools](https://github.com/fedemelo/git-tools) — install that repo too, or those two skills stay inert.
+
 ## What's in here
 
 - **`CLAUDE.md`** — global instructions applied to every project: commit discipline
