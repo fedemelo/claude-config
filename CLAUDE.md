@@ -6,7 +6,7 @@ Whenever instructed to commit changes, invoke the `commit` skill first and follo
 
 ## Self-Documenting Code
 
-Readable code supersedes static documentation, as the latter quickly becomes outdated. Never add comments that explain what the code does; instead, refactor the code to make its purpose clear.
+Readable code supersedes static documentation, as the latter quickly becomes outdated. Never add comments that explain what the code does; instead, refactor the code to make its purpose clear. When writing, reviewing, or removing comments, apply the `comment-hygiene` skill: keep only comments carrying knowledge that can't be inferred from the code.
 
 ## Single Responsibility Principle
 

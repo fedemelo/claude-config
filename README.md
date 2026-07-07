@@ -48,6 +48,10 @@ The `land` / `todo` skills need the `git-land` / `git-todo` executables from [gi
   and bot findings alike): fetches the comments from the PR (defaults to the current branch's PR,
   optional number/URL override), fixes the real issues via the `commit` skill, and returns
   in-session replies for the ones that aren't real. Never pushes and never posts to the PR.
+- **`skills/comment-hygiene/SKILL.md`** — the standard for which code comments are worth keeping
+  (only what can't be inferred from the code). Rarely used alone; referenced by `local-review`
+  (to flag redundant comments) and `address-review` (to keep touched code clean), and by
+  `CLAUDE.md`'s self-documenting-code rule.
 
 Each hook pairs with the skill it enforces — the hook blocks the raw command, the skill (and
 `CLAUDE.md`, which tells Claude the skills exist) points Claude at the right tool instead.
