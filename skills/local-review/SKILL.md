@@ -1,13 +1,17 @@
 ---
 name: local-review
-description: Review a GitHub PR as an expert staff engineer and return structured, categorized comments plus a verdict entirely in-session — nothing is ever posted to the PR or written to code. Takes the PR number or URL as an argument, plus optional pasted ticket/issue context to verify the PR actually fixes it. Use whenever instructed to review a PR locally / without publishing comments.
+description: Reviews a GitHub PR as a staff engineer, returning numbered categorized comments and an APPROVE/COMMENT/REQUEST CHANGES verdict in-session without posting to the PR or changing code. Takes an optional PR number/URL (defaults to the current branch's PR) and optional ticket context to check the PR fixes it. Use when asked to review a PR locally or without publishing comments.
 ---
 
-Act as an expert staff engineer reviewing a pull request. The PR to review — a URL or number — is given as the skill argument. If none was provided, ask for it before doing anything else.
-
-The argument may also include **ticket/issue context** (pasted text, a link, user/job details, etc.). If it does, verifying the PR actually fixes that ticket becomes the highest-priority part of the review — see "Does it fix the ticket?" below. If no ticket is provided, skip that section and review for correctness and quality alone.
+Act as an expert staff engineer reviewing a pull request.
 
 **Hard constraint:** deliver the entire review to the user in this session. NEVER modify code, commit, or write comments to the PR. This skill is read-only.
+
+## Which PR to review (resolve this yourself — never ask)
+
+1. If a PR link or number was given, review exclusively that PR.
+2. Otherwise, review exclusively the PR of the branch the repo is currently on — do not ask the user what to review. Resolve it yourself: `gh pr view` with no argument targets the current branch's PR, and `git branch --show-current` gives the branch name. Only if the current branch has no PR at all, say so and stop.
+3. If ticket/issue context was also provided (pasted text, a link, or details), the "Does it fix the ticket?" section applies. If not, the review is purely correctness, style, efficiency, unnecessary code, and overall code quality.
 
 ## Understand the system before concluding
 
@@ -29,17 +33,24 @@ This is the highest priority. Correctness is judged against whether the change a
 - Correctness: logic errors, edge cases, anything that could cascade to unintended effects.
 - Unnecessary changes: if something could have been done with less code or less churn, point it out.
 - PR description drift: if the description no longer matches the code, flag it and explain why. If the description is unnecessarily large or redundant, flag that too.
-- Style and hygiene, no matter how minor: `any`, unnecessary typecasts, redundant comments or JSDocs, non-pure functions, missing tests, etc.
+- Style and hygiene, no matter how minor: `any`, unnecessary typecasts, non-pure functions, missing tests, and comments or JSDocs that fail the [[comment-hygiene]] standard (flag them for removal).
 
 ## Comment format
 
-For every point, write:
+Number the comments sequentially, in order, and write each as:
 
 ```
+1.
 Line: <piece of code so it can be found with ctrl+F>
 File: <path-to-file>
 Comment: <comment>
 Category: BUG / COMMENT / HYPOTHETICAL
+
+2.
+Line: ...
+File: ...
+Comment: ...
+Category: ...
 ```
 
 Leave a comment on every detail, no matter how minor — minor points still get surfaced even when the verdict is APPROVE.
@@ -53,3 +64,12 @@ Finish with exactly one of: **APPROVE**, **COMMENT**, or **REQUEST CHANGES**.
 - **REQUEST CHANGES** — the PR is dangerous: as-is it would break something and needs a second look before merging. Reserve for real consequences (logically wrong code or effects that cascade), not style. Explain clearly why.
 
 Both COMMENT and REQUEST CHANGES mean the PR is not ready for approval; in both cases make it unambiguous why. When a ticket was provided and the PR does not fix it, that alone is grounds to withhold approval, and it is the highest-priority reason to state.
+
+## Close
+
+End the review with exactly these two lines:
+
+```
+Branch name: <branch name>
+PR URL: <link to PR>
+```
