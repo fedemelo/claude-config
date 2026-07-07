@@ -6,11 +6,16 @@ repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$HOME/.claude/hooks" "$HOME/.claude/skills"
 
 ln -sf "$repo_dir/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
-ln -sf "$repo_dir/hooks/enforce-commit-skill.py" "$HOME/.claude/hooks/enforce-commit-skill.py"
-ln -sf "$repo_dir/hooks/require-git-land-todo-tools.py" "$HOME/.claude/hooks/require-git-land-todo-tools.py"
-ln -sf "$repo_dir/skills/commit" "$HOME/.claude/skills/commit"
-ln -sf "$repo_dir/skills/land" "$HOME/.claude/skills/land"
-ln -sf "$repo_dir/skills/todo" "$HOME/.claude/skills/todo"
+
+for hook in "$repo_dir"/hooks/*.py; do
+  ln -sf "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+done
+
+# -sfn (not -sf): don't follow an existing dir symlink, or re-runs nest the link inside it
+for skill in "$repo_dir"/skills/*/; do
+  skill="${skill%/}"
+  ln -sfn "$skill" "$HOME/.claude/skills/$(basename "$skill")"
+done
 
 echo "Linked CLAUDE.md, hooks, and skills into ~/.claude"
 
