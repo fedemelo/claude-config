@@ -36,6 +36,18 @@ The `land` / `todo` skills need the `git-land` / `git-todo` executables from [gi
   instead of hand-rolling a PR with `gh`.
 - **`skills/todo/SKILL.md`** — instructs Claude to file GitHub issues via `git todo` instead
   of calling `gh issue create` directly.
+- **`skills/open-pr/SKILL.md`** — puts up a clean PR from a fresh branch cut off the latest
+  default branch: fetch, branch, commit only valid code changes (via the `commit` skill), push,
+  and open a PR assigned to you with a terse, staff-engineer-style description.
+- **`skills/local-review/SKILL.md`** — reviews a PR (passed by number or URL) as a staff engineer,
+  returning categorized comments and an APPROVE/COMMENT/REQUEST CHANGES verdict entirely
+  in-session; nothing is ever posted to the PR and no code is modified (hence "local"). Optionally
+  takes pasted ticket/issue context, in which case verifying the PR actually fixes that ticket
+  becomes the top priority.
+- **`skills/address-review/SKILL.md`** — triages and acts on PR review feedback (human comments
+  and bot findings alike): fetches the comments from the PR (defaults to the current branch's PR,
+  optional number/URL override), fixes the real issues via the `commit` skill, and returns
+  in-session replies for the ones that aren't real. Never pushes and never posts to the PR.
 
 Each hook pairs with the skill it enforces — the hook blocks the raw command, the skill (and
 `CLAUDE.md`, which tells Claude the skills exist) points Claude at the right tool instead.
