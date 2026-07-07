@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Put up a clean PR from a fresh branch cut off the latest default branch — fetch, branch, commit only valid code changes, push, and open a PR assigned to the user with a terse description. Use whenever instructed to open, put up, raise, or submit a PR for the current working changes.
+description: Puts up a clean PR for the current working changes — cuts a fresh branch off the latest default branch, commits only valid code changes, pushes, and opens a PR assigned to the user with a terse description. Use when asked to open, put up, raise, or submit a PR.
 ---
 
 Put up a clean PR for the changes that already exist in the working tree. Do NOT write, refactor, clean up, or make opportunistic code changes — commit and open the PR using the existing changes exactly as they are.

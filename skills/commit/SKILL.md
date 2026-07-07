@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Commit staged/pending changes following personal commit conventions (modular commits, terse single-line messages, no AI attribution). Use whenever instructed to commit.
+description: Commits staged/pending changes following personal conventions — modular commits, terse single-line messages, no AI attribution. Use when asked to commit.
 ---
 
 When instructed to commit changes, do NOT change the code. Commit your changes.
