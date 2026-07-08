@@ -2,7 +2,7 @@
 
 ## Committing
 
-Whenever instructed to commit changes, invoke the `commit` skill first and follow it. Do not commit ad hoc, even if you recall its rules — invoke the skill so its exact instructions are loaded fresh. (A PreToolUse hook also blocks `git commit` until the skill has been invoked in the current session, so if a commit is unexpectedly blocked, invoke the `commit` skill and retry.)
+Whenever instructed to commit changes, invoke the `commit` skill first and follow it. Do not commit ad hoc, even if you recall its rules; invoke the skill so its exact instructions are loaded fresh. (A PreToolUse hook also blocks `git commit` until the skill has been invoked in the current session, so if a commit is unexpectedly blocked, invoke the `commit` skill and retry.)
 
 ## Self-Documenting Code
 
