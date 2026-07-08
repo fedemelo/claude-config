@@ -1,55 +1,40 @@
 ---
 name: open-pr
-description: Puts up a clean PR for the current working changes — cuts a fresh branch off the latest default branch, commits only valid code changes, pushes, and opens a PR assigned to the user with a terse description. Use when asked to open, put up, raise, or submit a PR.
+description: Puts up a clean PR for the current working changes: cuts a fresh branch off the latest default branch, commits only valid code changes, pushes, and opens a PR assigned to the user with a terse description. Use when asked to open, put up, raise, or submit a PR.
 ---
 
-Put up a clean PR for the changes that already exist in the working tree. Do NOT write, refactor, clean up, or make opportunistic code changes — commit and open the PR using the existing changes exactly as they are.
+Put up a clean PR for the changes already in the working tree. Do not write, refactor, clean up, or make opportunistic code changes; commit and open the PR with the existing changes exactly as they are.
 
-## Start from a fresh branch off the latest default branch
+## Cut a fresh branch off the latest default branch
 
-Determine the remote's default branch rather than assuming `master`:
+Find the remote's default branch instead of assuming `master`:
 
 ```sh
 git remote show origin | sed -n 's/.*HEAD branch: //p'
 ```
 
-Then get fully up to date and cut a brand-new branch from the remote default (never from the current branch):
+Get fully up to date and cut a new branch from the remote default, never from the current branch:
 
 ```sh
 git fetch origin
-git switch -c <branch-name> origin/<default-branch>
+git switch -c <branch> origin/<base>
 ```
 
-- Uncommitted working-tree changes carry over onto the new branch — that is intended.
-- If the changes you're PR-ing are already committed on the current branch, cherry-pick or rebase them onto the new branch instead; do not lose them.
-- Name the branch clearly and descriptively from the changes (e.g. `fix-token-refresh-race`).
+Uncommitted changes in the working tree carry over onto the new branch, which is intended. If the changes are already committed on the current branch, move them onto the new branch with `git cherry-pick` or `git rebase` rather than losing them. Name the branch clearly from the changes, for example `fix-token-refresh-race`.
 
 ## Commit only valid code changes
 
-Inspect the changes with `git status` first. Commit following the [[commit]] skill — invoke it so its exact conventions load; do not hand-roll commits.
-
-Do NOT commit:
-- Any `.md` or `.plan` files used for design, planning, or notes
-- Any secrets or environment files
-- Any unrelated or accidental changes
-
-Only commit code changes.
+Inspect the changes with `git status`, then commit by following the [[commit]] skill; invoke it so its exact conventions load rather than committing by hand. Do not commit design files (any .md or .plan), secrets, environment files, or unrelated or accidental changes. Commit only code changes.
 
 ## Push and open the PR
 
-Push the new branch and open a PR targeting the default branch, assigned to the user:
+Push the branch and open a PR that targets the default branch and is assigned to the user:
 
 ```sh
-git push -u origin <branch-name>
-gh pr create --base <default-branch> --assignee @me --title "<title>" --body "<description>"
+git push -u origin <branch>
+gh pr create --base <base> --assignee @me --title "<title>" --body "<description>"
 ```
 
 ## PR description
 
-Write it like an experienced staff engineer leaving a short, practical note. Extremely succinct:
-- Briefly say what changed.
-- Mention important trade-offs, constraints, or decisions only if relevant.
-- Human and concise.
-- No headers, no markdown styling, no bold, no emojis, no sections, no bullets, no templates.
-
-Never add AI attribution to the PR (title or body), per the [[commit]] skill.
+Write the description by following the [[pr-description]] standard. Never add AI attribution to the PR title or body, per the [[commit]] skill.
