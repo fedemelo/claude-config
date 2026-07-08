@@ -1,16 +1,18 @@
 ---
 name: land
-description: Pushes local commits to the tracked branch via the git-land tool, which wraps them in a disposable, auto-merged PR. Use when asked to land, ship, or merge local commits without a manual PR.
+description: Pushes local commits to the tracked branch with the git-land tool, which wraps them in a disposable, auto-merged PR. Use when asked to land, ship, or merge local commits without a manual PR.
 ---
 
-When instructed to land, ship, or merge commits, run `git land` from the current repo. Do NOT write code, open a PR by hand, or call `gh pr create`/`gh pr merge` yourself — `git land` already does all of that. If `git-land` isn't installed on this machine, a hook will block the command and tell you so — don't fall back to manually replicating its behavior with raw `gh`/git commands in that case; just report it to the user.
+When told to land, ship, or merge commits, run `git land` from the current repo. Do not write code, open a PR by hand, or call `gh pr create` or `gh pr merge` yourself, since `git land` already does all of that. If `git-land` is not installed, a hook blocks the command and says so; report that to the user instead of replicating the behavior with raw `gh` or `git` commands.
 
 Usage: `git land ["title"] [--force]`
 
-- Title is optional; if omitted, it defaults to the last commit's subject.
-- Pass the title in quotes only if the user gave one or a clear one-line summary is obvious from context; otherwise omit it.
-- The tool refuses to run if the current branch is behind its upstream, or if there's nothing to land — surface that message to the user rather than trying to work around it (e.g. don't rebase/pull on their behalf unless asked).
-- The tool also refuses if the remote repo isn't owned by the authenticated GitHub user, requiring `--force` to override. Only add `--force` if the user explicitly confirms this is still solo/unreviewed work they want auto-merged on someone else's repo — never add it preemptively to make a refusal go away.
-- The tool never touches uncommitted/staged changes; it only lands what's already committed.
+The title is optional and defaults to the last commit's subject. Pass it in quotes only when the user gave one, or when a clear one-line summary is obvious from context; otherwise omit it.
 
-What it does under the hood (for context, not to be replicated manually): pushes the commits ahead of upstream to a disposable `tmp/...` branch, opens a PR, posts a comment on it noting it was auto-created and merged without review for recordkeeping, then rebase-merges it (no squash) and deletes the temp branch. If immediate merge is blocked by required checks/review, it falls back to enabling auto-merge instead of hanging.
+`git land` refuses to run in a few cases. It refuses when the branch is behind its upstream, or when there is nothing to land; surface that message rather than working around it, and do not rebase or pull on the user's behalf unless asked. It also refuses when the remote repo is not owned by the authenticated GitHub user, which `--force` overrides; add `--force` only when the user explicitly confirms this is solo, unreviewed work they want merged automatically on someone else's repo, never preemptively to clear a refusal.
+
+`git land` never touches uncommitted or staged changes; it lands only what is already committed.
+
+`git land` lands every commit currently ahead of upstream as a single PR. To split work across separate PRs, land in rounds: commit one group, run `git land`, then commit the next group and run `git land` again.
+
+For context, and not to be replicated by hand: it pushes the commits ahead of upstream to a disposable `tmp/...` branch, opens a PR, comments that the PR was auto-created and merged without review for recordkeeping, rebase-merges it without squashing, and deletes the temp branch. If an immediate merge is blocked by required checks or review, it enables auto-merge instead of hanging.
