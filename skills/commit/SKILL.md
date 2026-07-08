@@ -1,24 +1,18 @@
 ---
 name: commit
-description: Commits staged/pending changes following personal conventions — modular commits, terse single-line messages, no AI attribution. Use when asked to commit.
+description: Commits staged or pending changes following personal conventions: modular commits, terse single-line messages, no AI attribution. Use when asked to commit.
 ---
 
-When instructed to commit changes, do NOT change the code. Commit your changes.
+When told to commit, do not change the code; only commit what is already there.
 
-Do NOT commit:
-- Any .md or .plan files used for designing
-- Any environment files or secrets
+Commit only code changes. Never commit design files (any .md or .plan), environment files, or secrets.
 
-Only commit code changes.
+Keep commits modular: one commit per separate change, ideally one per file. Group files into a single commit only when committing a file on its own would fail the commit pipeline, linting, or checks that would pass once its dependent files are included.
 
-Make commits modular; i.e., write a separate commit for separate changes. Ideally, make one commit per file. Do not make one commit per file if and only if the commit pipeline, linting or checks fail by including a standalone file but would pass if other dependent changes where included. In that case include the necessary files in a single commit.
+Never disable linting or any verification to make a commit pass. Never use the `--no-verify` flag.
 
-NEVER disable linting or other verifications for commits to pass. Never use the --no-verify flag.
+Give each commit a single message: one succinct sentence that starts with an active verb and summarizes the change. No secondary body, no unnecessary adjectives. Prefer "Update AI agent to use new chunking utilities" over "Update AI agent to use new comprehensive chunking utilities".
 
-Each commit should have a single message, the main message, starting with an active verb and written as a single succinct sentence that summarizes the changes. No commit should have additional secondary long messages; only the title suffices for each. Each message should be short and to the point. Do not use unnecessary adjectives. E.g., prefer "Update AI agent to use new chunking utilities" over "Update AI agent to use new comprehensive chunking utilities".
+When one file holds two or more unrelated changes, stage the parts separately with `git add -p` and commit each on its own, when that is possible and all checks still pass. Otherwise commit the whole file and join the sentences with `;`. Write "Add x" and "Implement y" as separate commits when you can, or "Add x; Implement y" in one when you cannot. Never "Add x and implement y".
 
-If it happens that two or more semantically distinct or unrelated changes are done in a single file, try to commit each action individually by staging the file content by parts, using `git add -p`, if it is possible and all commit checks pass. If not, commit the whole file and separate the sentences by `;`. E.g.: Usually: "Add x" in one commit and "Implement y" in another; if needed: "Add x; Implement y". Never: "Add x and implement y"
-
-NEVER add yourself as an author or co-author of the commit, or add any AI model as an author or co-author of the commit.
-
-The same rule applies to pull requests: NEVER add yourself or any AI model as an author, co-author, or contributor in the PR title or body. Do NOT include any "Generated with [Claude Code]" / "Generated with [tool]" footer, "Co-Authored-By" line, or any equivalent attribution to an AI tool or assistant in the PR body. The PR body should only describe the change.
+Never list yourself or any AI model as author or co-author of a commit. The same holds for pull requests: never add any author, co-author, or contributor attribution in the title or body, and never include a "Generated with [tool]" footer or a "Co-Authored-By" line. The PR body describes only the change.
