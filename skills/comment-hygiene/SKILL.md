@@ -1,6 +1,6 @@
 ---
 name: comment-hygiene
-description: Defines which code comments are worth keeping: only those carrying knowledge that cannot be inferred from the code, not restatements of it. Strips unnecessary comments from a diff or file when invoked directly; other skills reference it as the rule for judging comments. Use when removing, reviewing, or writing comments.
+description: "Defines which code comments are worth keeping: only those carrying knowledge that cannot be inferred from the code, not restatements of it. Strips unnecessary comments from a diff or file when invoked directly; other skills reference it as the rule for judging comments. Use when removing, reviewing, or writing comments."
 ---
 
 A comment earns its place only when it carries information that cannot be deduced from the code itself. Judge every comment against a developer who knows the language, common patterns (such as what "factory" or "wrapper" imply), and this codebase's conventions, but not its business or domain. If that developer could infer the comment from the code alone, it adds nothing. When in doubt, remove.

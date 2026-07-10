@@ -1,6 +1,6 @@
 ---
 name: pr-description
-description: The standard for PR descriptions: succinct, unformatted, at most two short paragraphs covering what was fixed and any non-obvious decisions. Other skills reference it when opening a PR or judging an existing description. Use when writing or reviewing a PR description.
+description: "The standard for PR descriptions: succinct, unformatted, at most two short paragraphs covering what was fixed and any non-obvious decisions. Other skills reference it when opening a PR or judging an existing description. Use when writing or reviewing a PR description."
 ---
 
 Write a normal first draft, then tighten it against every rule below.
