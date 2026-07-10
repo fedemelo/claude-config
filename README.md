@@ -44,4 +44,4 @@ Each links to its full definition. The one-liner here is why it's useful and how
 ## Also included
 
 - **`CLAUDE.md`** — global rules applied to every project: commit discipline, self-documenting code, single responsibility, DRY.
-- **`hooks/`** — two `PreToolUse` guards. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` until the git-tools executables are installed, rather than letting Claude replicate them by hand.
+- **`hooks/`** — three `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; one blocks `git land` / `git todo` until the git-tools executables are installed; and one, declared in each command-running skill's frontmatter and active only while that skill is in use, auto-approves the specific commands that skill needs so they don't trigger a permission prompt.
