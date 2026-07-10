@@ -1,6 +1,12 @@
 ---
 name: land
 description: Pushes local commits to the tracked branch with the git-land tool, which wraps them in a disposable, auto-merged PR. Use when asked to land, ship, or merge local commits without a manual PR.
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "git land" "git fetch" "git status" "git log"'
 ---
 
 When told to land, ship, or merge commits, run `git land` from the current repo. Do not write code, open a PR by hand, or call `gh pr create` or `gh pr merge` yourself, since `git land` already does all of that. If `git-land` is not installed, a hook blocks the command and says so; report that to the user instead of replicating the behavior with raw `gh` or `git` commands.

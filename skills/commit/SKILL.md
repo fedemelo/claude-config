@@ -1,6 +1,12 @@
 ---
 name: commit
-description: Commits staged or pending changes following personal conventions: modular commits, terse single-line messages, no AI attribution. Use when asked to commit.
+description: "Commits staged or pending changes following personal conventions: modular commits, terse single-line messages, no AI attribution. Use when asked to commit."
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "git add" "git commit" "git status" "git diff"'
 ---
 
 When told to commit, do not change the code; only commit what is already there.
