@@ -28,7 +28,7 @@ The title is optional and defaults to the last commit's subject. Pass it in quot
 `git land` works on the commits ahead of the branch's upstream, and by default lands all of them as one PR. Two flags split that up:
 
 1. `git land --until <commit>` lands only up to and including `<commit>`, leaving everything above it local and unlanded. It takes any commit-ish, so `--until HEAD~2` works as well as a hash from `git log --oneline`. Run it again for the next batch.
-2. `git land --each` lands every commit ahead as its own PR, each titled from its own commit subject. Add `--until` to cap how far it goes. Do not pass a title with `--each`; the command refuses it.
+2. `git land --each` lands every commit ahead as its own PR, each titled from its own commit subject. Add `--until` to cap how far it goes. Do not pass a title with `--each`; the command refuses it. Never reach for this on your own; see below.
 
 Only a prefix of the history can be landed, because commits form a chain rather than a set: landing the first two and then the rest is fine, but landing the first and third while skipping the second is impossible. Nothing here rewrites history to work around that.
 
@@ -36,9 +36,10 @@ Only a prefix of the history can be landed, because commits form a chain rather 
 
 Decide this before landing, from what the commits actually are:
 
-1. One PR for one cohesive change, even across several commits: plain `git land "<title>"`.
-2. One PR per commit when the commits are independent and each stands on its own: `git land --each`.
-3. Several PRs when the branch holds more than one distinct piece of work: `git land --until <last commit of the first piece>`, then land again for the next.
+1. One PR for one cohesive change, however many commits it took: plain `git land "<title>"`. This is the normal case and the default; prefer it whenever the commits add up to a single piece of work.
+2. Several PRs when the branch genuinely holds more than one distinct piece of work: `git land --until <last commit of the first piece>`, then land again for the next.
+
+Never use `--each` unless the user explicitly asks for one PR per commit. Splitting one piece of work across a PR per commit scatters it over several records, so nothing can be read, reviewed, or reverted as a unit, and a one-file commit that only makes sense alongside its siblings becomes its own PR. Landing several commits together in one PR is almost always correct: the commits of one change belong to one PR. Choose between option 1 and option 2 above; `--each` is not a third option to weigh.
 
 After each run it prints how many commits remain ahead of upstream, so an unfinished stack is visible rather than silently left behind.
 
