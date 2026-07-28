@@ -11,9 +11,17 @@ hooks:
 
 When told to land, ship, or merge commits, run `git land` from the current repo. Do not write code, open a PR by hand, or call `gh pr create` or `gh pr merge` yourself, since `git land` already does all of that. If `git-land` is not installed, a hook blocks the command and says so; report that to the user instead of replicating the behavior with raw `gh` or `git` commands.
 
+This is for solo work that merges without review, on a branch that already tracks an upstream, normally the default branch. When the change should be reviewed before merging, or the current branch has no upstream at all, `git land` is the wrong tool and refuses to run; put up a real PR with the [[open-pr]] skill instead.
+
 Usage: `git land ["title"] [--until <commit>] [--each] [--force]`
 
 The title is optional and defaults to the last commit's subject. Pass it in quotes only when the user gave one, or when a clear one-line summary is obvious from context; otherwise omit it. Always pass one when the land covers several commits, since the last commit's subject usually describes the smallest part of the work.
+
+## Before running it
+
+1. Check what will land: `git log --oneline @{u}..HEAD`. Every commit listed goes in, including ones from earlier sessions that have nothing to do with the task at hand. If the list holds more than the current work, land just the relevant prefix with `--until`, or ask which commits to land. Never land unfamiliar commits blindly.
+2. Never `git push` first. `git land` does the pushing itself. A manual push moves the upstream forward, so `git land` then reports nothing to land and the work arrives on the branch with no PR recorded at all, which defeats the entire purpose. Landing is the only publish step.
+3. Uncommitted and staged changes never land, since `git land` only ever lands what is already committed. If the work is not committed yet, commit it first by following the [[commit]] skill.
 
 ## How much gets landed
 
@@ -37,7 +45,5 @@ After each run it prints how many commits remain ahead of upstream, so an unfini
 Because only prefixes can be landed, the commits belonging to one PR must sit together in history. That ordering is decided while committing, not here, so follow the [[commit]] skill's grouping rules first; a file whose changes belong to two different PRs has to be split at staging time, since no flag here can separate them afterwards.
 
 `git land` refuses to run in a few cases. It refuses when the branch is behind its upstream, and when there is nothing to land, including an `--until` commit that is already on upstream, is not an ancestor of `HEAD`, or sits behind upstream. Surface that message rather than working around it, and do not rebase or pull on the user's behalf unless asked. It also refuses when the remote repo is not owned by the authenticated GitHub user, which `--force` overrides; add `--force` only when the user explicitly confirms this is solo, unreviewed work they want merged automatically on someone else's repo, never preemptively to clear a refusal.
-
-`git land` never touches uncommitted or staged changes; it lands only what is already committed.
 
 For context, and not to be replicated by hand: it pushes the commits being landed to a disposable `tmp/...` branch, opens a PR, comments that the PR was auto-created and merged without review for recordkeeping, fast-forwards them onto the base branch so signatures survive, and deletes the temp branch. If that push is refused by branch protection it falls back to a server-side rebase-merge, which rewrites the landed commits and then replays any still-unlanded ones on top, so a partial land never strands local work. If an immediate merge is blocked by required checks or review, it enables auto-merge instead of hanging.
