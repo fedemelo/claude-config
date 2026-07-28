@@ -37,7 +37,14 @@ git fetch origin pull/<n>/head        # <n>: the number from the metadata above
 git show FETCH_HEAD:<path>
 ```
 
-3. Read every existing comment, from humans and from bots or other AI tools: `gh pr view <pr> --comments`, plus `gh api repos/{owner}/{repo}/pulls/<n>/comments` for inline review comments. Never repeat a point another reviewer already made.
+3. Read every existing comment, from humans and from bots or other AI tools, so you never repeat a point another reviewer already made. Both commands render through `--template`, which keeps the output to the comments themselves; `--comments` and the raw REST endpoint each return several times the volume for the same content, most of it identifiers and URLs.
+
+```sh
+gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}: {{.body}}{{"\n"}}{{end}}'
+gh api repos/{owner}/{repo}/pulls/<n>/comments --template '{{range .}}{{.user.login}} {{.path}}:{{.line}}{{"\n"}}{{.diff_hunk}}{{"\n"}}{{.body}}{{"\n\n"}}{{end}}'
+```
+
+Unlike [[address-review]], this skill reads resolved and unresolved threads alike, since a settled thread still shows what has already been raised. That is why REST is enough here and no GraphQL query is needed.
 
 ## Does it fix the ticket? (only when ticket context is provided)
 
