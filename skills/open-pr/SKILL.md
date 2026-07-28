@@ -6,18 +6,28 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "git fetch" "git switch" "git push" "git status" "git log" "git remote" "git cherry-pick" "git rebase" "gh pr create"'
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "git fetch" "git switch" "git push" "git status" "git log" "git remote" "git symbolic-ref" "git cherry-pick" "git rebase" "gh pr create" "gh repo view"'
 ---
 
 Put up a clean PR for the changes already in the working tree. Do not write, refactor, clean up, or make opportunistic code changes; commit and open the PR with the existing changes exactly as they are.
 
 ## Cut a fresh branch off the latest default branch
 
-Find the remote's default branch instead of assuming `master`:
+Find the remote's default branch instead of assuming `main` or `master`:
 
 ```sh
-git remote show origin | sed -n 's/.*HEAD branch: //p'
+git symbolic-ref refs/remotes/origin/HEAD --short
 ```
+
+This reads a local ref, so it answers instantly and needs no network round trip. It prints `origin/<base>`: use that as the start point below, and drop the `origin/` prefix for `--base`. Prefer it over `git remote show origin`, which queries the remote and needs a pipe into `sed` to be readable, costing a permission prompt every run.
+
+It exits non-zero when `origin/HEAD` is not set locally, which happens in a repo built with `git init` and `git remote add` rather than cloned. Fall back to the API, which returns the bare branch name:
+
+```sh
+gh repo view --json defaultBranchRef --template '{{.defaultBranchRef.name}}'
+```
+
+Decide between them on the exit status, never by matching the error text, which is localized.
 
 Get fully up to date and cut a new branch from the remote default, never from the current branch:
 
