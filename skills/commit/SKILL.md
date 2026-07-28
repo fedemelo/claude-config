@@ -21,4 +21,6 @@ Give each commit a single message: one succinct sentence that starts with an act
 
 When one file holds two or more unrelated changes, stage the parts separately with `git add -p` and commit each on its own, when that is possible and all checks still pass. Otherwise commit the whole file and join the sentences with `;`. Write "Add x" and "Implement y" as separate commits when you can, or "Add x; Implement y" in one when you cannot. Never "Add x and implement y".
 
+If this work is headed for more than one pull request, decide the grouping now, because only a contiguous run of commits can be landed as one PR (see the [[land]] skill). Commit each PR's changes together, so no PR's commits are interleaved with another's. This matters most for a file whose changes belong to different PRs: separating them is only possible while staging, so if `git add -p` is unavailable, commit one change, then make the other and commit it. Landing cannot split them afterwards.
+
 Never list yourself or any AI model as author or co-author of a commit. The same holds for pull requests: never add any author, co-author, or contributor attribution in the title or body, and never include a "Generated with [tool]" footer or a "Co-Authored-By" line. The PR body describes only the change.
