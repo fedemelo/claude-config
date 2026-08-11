@@ -44,8 +44,6 @@ gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}
 gh api repos/{owner}/{repo}/pulls/<n>/comments --template '{{range .}}{{.user.login}} {{.path}}:{{.line}}{{"\n"}}{{.diff_hunk}}{{"\n"}}{{.body}}{{"\n\n"}}{{end}}'
 ```
 
-Unlike [[address-review]], this skill reads resolved and unresolved threads alike, since a settled thread still shows what has already been raised. That is why REST is enough here and no GraphQL query is needed.
-
 ## Does it fix the ticket? (only when ticket context is provided)
 
 This is the highest priority: correctness is judged against whether the change resolves the reported issue.
@@ -70,12 +68,23 @@ Number the comments sequentially and write each as:
 1.
 Line: <piece of code so it can be found with ctrl+F>
 File: <file path>
-Comment: <comment>
+Reasoning: <the full case for the finding>
+Comment: <the comment as it will be posted>
 Category: BUG / COMMENT / HYPOTHETICAL
 
 2.
 ...
 ```
+
+Keep that field order. The reasoning is written first and the comment is compressed from it, never the other way round.
+
+Reasoning is for the user, who decides whether to post. It has to convince them the finding is real, so give it everything: what is wrong, the code path that proves it, every function, module, and file involved, and how it was verified, naming the files and lines read. Length does not matter here.
+
+Comment is for the PR author, and the user posts it as written. Follow the [[plain-english]] standard in full, plus:
+
+1. Name at most one identifier beyond what is already visible on the commented line. Every other name belongs in the reasoning.
+2. Say what goes wrong, and what to do instead when that is not obvious. Never how the finding was reached.
+3. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
 
 Comment on every detail, however minor, even when the verdict is APPROVE.
 
