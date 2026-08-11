@@ -16,6 +16,12 @@ How so?
 3. These are not restatements of Claude's built-ins. They encode specific conventions that actually save humans (not AI) time. See the [skills](#skills) section.
 4. Some skills drive fast `git` subcommands (from [git-tools](https://github.com/fedemelo/git-tools)) instead of long `gh` incantations, and `PreToolUse` hooks block the raw commands until the matching skill is loaded, so the conventions can't be silently skipped.
 
+## Prerequisites
+
+- The [`gh` CLI](https://cli.github.com), authenticated with `gh auth login`. Most skills drive `gh`, and nothing here checks for it, so without it they fail at first use with a bare `gh: command not found`.
+- `python3`, which the hooks and the settings merge run on.
+- [git-tools](https://github.com/fedemelo/git-tools), or the `land` and `todo` skills stay inert, since they call its `git-land` / `git-todo` executables. Install it first and follow its `~/.gitconfig` step: a fresh machine has no `user.email`, and every commit fails until that is filled in.
+
 ## Install
 
 ```sh
@@ -24,9 +30,17 @@ cd claude-config
 ./install.sh
 ```
 
-It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges the `PreToolUse` hook entries into `~/.claude/settings.json` without disturbing your existing settings. **Re-run it any time you add a skill**.
+It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges the `PreToolUse` hook entries into `~/.claude/settings.json` without disturbing your existing settings. A `CLAUDE.md` you wrote yourself is moved to `CLAUDE.md.pre-claude-config` rather than overwritten, and hook entries are matched by script, so a changed command updates in place instead of leaving the old one alongside it.
 
-The `land` and `todo` skills call the `git-land` / `git-todo` executables from [git-tools](https://github.com/fedemelo/git-tools); install that repo too, or those two skills stay inert.
+**Re-run it after every pull.** Editing a skill takes effect immediately, since the installed paths are symlinks, but a skill *added* upstream has no link until you re-run, and one renamed or removed upstream leaves a link pointing nowhere. Re-running creates the first and prunes the second, reporting whatever it changed.
+
+## Tests
+
+```sh
+tests/install.test.sh
+```
+
+No dependencies and no network. Every case installs into a throwaway `HOME`, so running the suite never touches your real `~/.claude`.
 
 ## Skills
 
