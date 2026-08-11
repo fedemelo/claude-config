@@ -17,6 +17,17 @@ fi
 
 ln -sf "$repo_dir/CLAUDE.md" "$claude_md"
 
+# Links whose target no longer exists are skills and hooks renamed or removed upstream.
+# Nothing else prunes them, and a stale skill directory stays visible to Claude.
+pruned=0
+for link in "$HOME/.claude/hooks"/* "$HOME/.claude/skills"/*; do
+  if [ -L "$link" ] && [ ! -e "$link" ]; then
+    echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
+    rm "$link"
+    pruned=$((pruned + 1))
+  fi
+done
+
 for hook in "$repo_dir"/hooks/*.py; do
   ln -sf "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
 done
@@ -28,5 +39,6 @@ for skill in "$repo_dir"/skills/*/; do
 done
 
 echo "Linked CLAUDE.md, hooks, and skills into ~/.claude"
+[ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
 
 python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json"
