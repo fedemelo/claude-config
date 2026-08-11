@@ -57,7 +57,7 @@ This is the highest priority: correctness is judged against whether the change r
 
 1. Correctness: logic errors, edge cases, anything that could cascade to unintended effects.
 2. Unnecessary changes: anything that could have been done with less code or less churn.
-3. PR description: flag it if it no longer matches the code, and flag bloat judged against the [[pr-description]] standard.
+3. Intent: read the PR description as the author's statement of what they meant to do, and check the code against it. Say so whenever the two diverge, in the form "the description says X, the code does Y", and treat the divergence as a finding about the code or about a change the description never mentions. Never review the description itself: not its wording, its formatting, its length, or whether it is still up to date.
 4. Style and hygiene, however minor: `any`, unnecessary typecasts, non-pure functions, missing tests, and comments or JSDocs that fail the [[comment-hygiene]] standard.
 
 ## Comment format
