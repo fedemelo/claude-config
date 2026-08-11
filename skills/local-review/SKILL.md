@@ -70,13 +70,15 @@ Line: <piece of code so it can be found with ctrl+F>
 File: <file path>
 Reasoning: <the full case for the finding>
 Comment: <the comment as it will be posted>
-Category: BUG / COMMENT / HYPOTHETICAL
+Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
 
 2.
 ...
 ```
 
 Keep that field order. The reasoning is written first and the comment is compressed from it, never the other way round.
+
+Order the findings by category, in the order listed under "Categories" below, rather than by file. Number them sequentially across the whole list.
 
 Reasoning is for the user, who decides whether to post. It has to convince them the finding is real, so give it everything: what is wrong, the code path that proves it, every function, module, and file involved, and how it was verified, naming the files and lines read. Length does not matter here.
 
@@ -88,13 +90,30 @@ Comment is for the PR author, and the user posts it as written. Follow the [[pla
 
 Comment on every detail, however minor, even when the verdict is APPROVE.
 
+## Categories
+
+1. BUG: the code is wrong. It breaks now, or breaks on an input that can actually occur. It has to be fixed before merging.
+2. MAJOR: nothing breaks, but leaving it costs later. Duplicated code that will drift out of sync, an abstraction in the wrong place, a missing test over risky logic.
+3. MINOR: objectively wrong, cheap to fix, and cheap to leave. A comment that restates the code, an unnecessary cast, a stray `any`.
+4. SUGGESTION: nothing is wrong. An alternative worth naming, and fine if the author declines it.
+5. HYPOTHETICAL: correct today, and a problem only under conditions that do not hold yet. Always state the condition.
+
+Use these tests on the boundaries:
+
+1. BUG or MAJOR: does an input that can actually occur produce wrong behavior? If yes, BUG.
+2. MAJOR or MINOR: if the author declined to change it, would you still want it changed before merging? If yes, MAJOR.
+3. MINOR or SUGGESTION: is it objectively wrong, or just not how you would have done it? If wrong, MINOR.
+4. HYPOTHETICAL or BUG: does the triggering condition exist in the code today? If yes, BUG.
+
+When two categories both fit, take the lower one. A genuine question gets no category of its own: file it under the concern behind it, usually MAJOR or HYPOTHETICAL, and phrase the comment as the question.
+
 ## Verdict
 
-Finish with exactly one of APPROVE, COMMENT, or REQUEST CHANGES.
+Finish with exactly one of APPROVE, COMMENT, or REQUEST CHANGES. These are the GitHub review actions, unrelated to the categories above.
 
-1. APPROVE: the logic is correct, and if a ticket was given the PR genuinely fixes it. Use it even when minor style or hygiene issues remain; still leave every comment, since the author addresses them regardless.
-2. COMMENT: minor errors or bugs that carry no real risk of breaking anything.
-3. REQUEST CHANGES: the PR would break something and needs a second look before merging. Reserve it for real consequences such as logically wrong code or cascading effects, not style.
+1. APPROVE: the logic is correct, and if a ticket was given the PR genuinely fixes it. Every finding is MINOR, SUGGESTION, or HYPOTHETICAL. Still leave all of them, since the author addresses them regardless.
+2. COMMENT: there is at least one MAJOR, or a BUG that carries no real risk of breaking anything.
+3. REQUEST CHANGES: a BUG would break something real, so the PR needs a second look before merging. Reserve it for real consequences such as logically wrong code or cascading effects, not style.
 
 COMMENT and REQUEST CHANGES both withhold approval; state plainly why.
 
