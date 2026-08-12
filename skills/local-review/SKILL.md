@@ -70,13 +70,16 @@ Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
 Line: <piece of code so it can be found with ctrl+F>
 File: <file path>
 Reasoning: <the full case for the finding>
+
 Comment: <the comment as it will be posted>
 
 2.
 ...
 ```
 
-Keep that field order. Two rules survive it. The reasoning is written first and the comment is compressed from it, never the other way round. The category is a conclusion drawn from the reasoning by the tests below, never a label chosen before the case is made; settle both before writing the block out, so the category standing at the top reports a decision already taken.
+Reproduce that layout exactly, including the blank line before the comment. The comment is the part the user acts on, so it has to be findable at a glance rather than buried against the reasoning above it.
+
+Two rules survive the field order. The reasoning is written first and the comment is compressed from it, never the other way round. The category is a conclusion drawn from the reasoning by the tests below, never a label chosen before the case is made; settle both before writing the block out, so the category standing at the top reports a decision already taken.
 
 Order the findings by category, in the order listed under "Categories" below, rather than by file. Number them sequentially across the whole list.
 
