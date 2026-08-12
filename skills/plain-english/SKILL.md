@@ -11,6 +11,7 @@ Sentences and words:
 2. Active voice with a concrete subject. "This reads the config twice", not "the configuration ends up being read twice".
 3. Verbs over nominalizations. "This duplicates the data", not "this introduces duplication of the data".
 4. One idea per sentence, with no clause stacked inside another. A "which", "while", "although", "given that", or an opening "Having ..." is the signal to break the sentence in two. Joining two short statements with "and", "but", or "so" is fine. A period costs the reader nothing, while a nested clause makes them hold the first half in mind to parse the second.
+5. Unroll hyphenated compounds unless the compound is a fixed term. Established ones stay as they are: read-only, off-by-one, type-safe, non-null. Invented ones go back into ordinary word order, so "hard-to-follow logic" becomes "logic that is hard to follow", and "a single-source-of-truth problem" becomes "this value is now stored in two places". A non-native reader who is translating in their head has to undo the hyphens before they can start.
 
 No fluff. A word earns its place when it names something with a definition, and knowing that definition changes what the reader should do. Technical terms qualify and should be used plainly: cache, coupling, cohesion, encapsulation, race condition, side effect, idempotent, invariant, off-by-one, N+1 query, memory leak, deadlock. These do not:
 
@@ -36,7 +37,7 @@ Do not read as AI-written:
 
 What this looks like. Before:
 
-> This introduces a fairly brittle coupling: `resolveTenantConfig` reaches into the `SessionContext` singleton to surface the tenant id, which is then threaded through `buildQueryPlan` and `executePlan`, so any caller that instantiates the planner outside a request lifecycle hits a null deref.
+> This introduces a fairly brittle coupling: `resolveTenantConfig` reaches into the `SessionContext` singleton to surface the tenant id, which is then threaded through `buildQueryPlan` and `executePlan`, so any caller that instantiates the planner outside a request lifecycle hits a hard-to-diagnose null deref.
 
 After:
 
