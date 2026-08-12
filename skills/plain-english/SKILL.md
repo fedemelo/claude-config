@@ -25,6 +25,7 @@ Keep the reader's memory free:
 1. Name only the symbols the reader must act on. Every extra function, module, or file name is one more thing to hold in mind while reading the rest of the sentence.
 2. Give the conclusion and its consequence, not the path taken to reach them. No chain of hops through the codebase.
 3. Cut the investigation: what was checked first, what was ruled out, what turned out fine.
+4. Once there are more than two ideas, put a blank line between them. The eye needs somewhere to rest, and a wall of text gives it nowhere. This buys readability, never permission to write more.
 
 Do not read as AI-written:
 
