@@ -66,17 +66,17 @@ Number the comments sequentially and write each as:
 
 ```
 1.
+Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
 Line: <piece of code so it can be found with ctrl+F>
 File: <file path>
 Reasoning: <the full case for the finding>
 Comment: <the comment as it will be posted>
-Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
 
 2.
 ...
 ```
 
-Keep that field order. The reasoning is written first and the comment is compressed from it, never the other way round.
+Keep that field order. Two rules survive it. The reasoning is written first and the comment is compressed from it, never the other way round. The category is a conclusion drawn from the reasoning by the tests below, never a label chosen before the case is made; settle both before writing the block out, so the category standing at the top reports a decision already taken.
 
 Order the findings by category, in the order listed under "Categories" below, rather than by file. Number them sequentially across the whole list.
 
