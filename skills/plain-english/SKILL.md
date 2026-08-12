@@ -27,14 +27,21 @@ Keep the reader's memory free:
 3. Cut the investigation: what was checked first, what was ruled out, what turned out fine.
 4. Once there are more than two ideas, put a blank line between them. The eye needs somewhere to rest, and a wall of text gives it nowhere. This buys readability, never permission to write more.
 
+When the text speaks to a person:
+
+1. Never use the imperative. Not "move this to the service", not "remove the cast", not "extract this into a helper". An order leaves the reader nothing to answer.
+2. When something is wrong, open with "I think". It says the reasoning is done and the conclusion stands, while leaving the reader room to show you otherwise: "I think this breaks when the list is empty".
+3. When offering an alternative rather than correcting an error, use "we could" or "we might": "we could pass the id in instead".
+4. A question does the same work and is usually shorter. "Why not pass the id in?" is a complete message.
+5. Soften the stance, never the claim. Where a sentence opens with "I think", that is the hedge it gets, so nothing else is stacked on top. Never "I think this might possibly break".
+
 Do not read as AI-written:
 
 1. Plain prose. No bold, no headers, no bullet list for a single point.
 2. Never restate the reader's own code or words back to them before making the point.
-3. No praise and no softening ritual: "great catch", "nice work", "just a thought".
+3. No praise, and no empty softener that pads the message without changing it: "great catch", "nice work", "just a thought". The stance markers above are a different thing, since they say who is claiming what.
 4. One hedge at most, and only where the uncertainty is real. Never "it might potentially be worth considering".
-5. When it is a question, ask it. "Why not X?" is a complete message.
-6. No sign-off, no summary of what was just said, no offer to help further.
+5. No sign-off, no summary of what was just said, no offer to help further.
 
 What this looks like. Before:
 
@@ -42,6 +49,6 @@ What this looks like. Before:
 
 After:
 
-> This only works inside a request. In a background job there is no session, so the tenant id is null and the planner crashes. Pass the tenant id in as an argument instead.
+> This only works inside a request. In a background job there is no session, so the tenant id is null and the planner crashes. I think the tenant id should be an argument instead.
 
 Applying this: invoked directly, rewrite the given text against these rules and return it. Referenced from another skill, apply it to every part of the output that a person other than the user will read. It governs prose only, never code, identifiers, quoted text, or command output.
