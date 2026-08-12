@@ -8,8 +8,9 @@ Write the draft you would write anyway, then rewrite it against every rule below
 Sentences and words:
 
 1. B2-level English: the common word over the rare one. "wrong" not "erroneous", "use" not "leverage", "same" not "identical", "so" not "hence".
-2. One idea per sentence, active voice, concrete subject. "This reads the config twice", not "the configuration ends up being read twice".
+2. Active voice with a concrete subject. "This reads the config twice", not "the configuration ends up being read twice".
 3. Verbs over nominalizations. "This duplicates the data", not "this introduces duplication of the data".
+4. One idea per sentence, with no clause stacked inside another. A "which", "while", "although", "given that", or an opening "Having ..." is the signal to break the sentence in two. Joining two short statements with "and", "but", or "so" is fine. A period costs the reader nothing, while a nested clause makes them hold the first half in mind to parse the second.
 
 No fluff. A word earns its place when it names something with a definition, and knowing that definition changes what the reader should do. Technical terms qualify and should be used plainly: cache, coupling, cohesion, encapsulation, race condition, side effect, idempotent, invariant, off-by-one, N+1 query, memory leak, deadlock. These do not:
 
