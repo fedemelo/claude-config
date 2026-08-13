@@ -27,7 +27,7 @@ Gather full context before forming an opinion. Below, `<pr>` is the given number
 
 ```sh
 gh pr diff <pr>
-gh pr view <pr> --json number,title,body,url,headRefName
+gh pr view <pr> --json number,title,body,headRefName
 ```
 
 2. Read the surrounding code the diff touches, not just the diff. Fetch the PR head without checking out, then read files from it:
@@ -122,9 +122,9 @@ COMMENT and REQUEST CHANGES both withhold approval; state plainly why.
 
 ## Close
 
-End with exactly these two lines, using the `headRefName` (the PR's head branch) and `url` from the metadata fetched above:
+End with exactly these two lines, using the `headRefName` (the PR's head branch) and `number` from the metadata fetched above:
 
 ```
 Branch name: <branch name>
-PR URL: <link to PR>
+PR: #<number>
 ```
