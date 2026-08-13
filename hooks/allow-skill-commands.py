@@ -6,8 +6,10 @@ use. Reads the PreToolUse hook JSON from stdin; the allowed command prefixes are
 passed as arguments. If the Bash command consists solely of allowed commands
 (every segment between shell operators starts with an allowed prefix, and the
 command has no substitution or redirection), it returns permissionDecision
-"allow" to skip the prompt. Otherwise it stays silent, so the normal permission
-flow and any other hooks still apply. It never denies.
+"allow" to skip the prompt. A `gh api` call is allowed only when it can read and
+not write, so an allowed prefix like "gh api repos/" cannot be turned into a
+write. Otherwise it stays silent, so the normal permission flow and any other
+hooks still apply. It never denies.
 """
 
 import json
@@ -16,6 +18,11 @@ import sys
 
 SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||;|\||\n")
 DANGEROUS_RE = re.compile(r"`|\$\(|>|<")
+GH_API_RE = re.compile(r"gh api\b")
+GRAPHQL_RE = re.compile(r"gh api graphql\b")
+METHOD_FLAG_RE = re.compile(r"(?<![\w-])(-X|--method)")
+BODY_FLAG_RE = re.compile(r"(?<![\w-])(-f|-F|--field|--raw-field|--input)")
+MUTATION_RE = re.compile(r"\bmutation\b")
 
 
 def silent():
@@ -38,11 +45,28 @@ def normalize(text):
     return " ".join(text.split())
 
 
+def reads_only(seg):
+    """Whether a `gh api` call can only read.
+
+    `gh api` sends POST as soon as any field is passed, so an unwritten method
+    proves nothing on its own and the call counts as a read only when it carries
+    no body either. GraphQL is the exception, since it needs fields to carry its
+    query, so there the query itself has to be a query and not a mutation.
+    """
+    if METHOD_FLAG_RE.search(seg):
+        return False
+    if GRAPHQL_RE.match(seg):
+        return not MUTATION_RE.search(seg)
+    return not BODY_FLAG_RE.search(seg)
+
+
 def segment_allowed(segment, prefixes):
     seg = normalize(segment)
     if not seg:
         return True
-    return any(seg == p or seg.startswith(p + " ") for p in prefixes)
+    if not any(seg == p or seg.startswith(p + " ") for p in prefixes):
+        return False
+    return reads_only(seg) if GH_API_RE.match(seg) else True
 
 
 def main():
