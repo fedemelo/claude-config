@@ -38,9 +38,10 @@ It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges 
 
 ```sh
 tests/install.test.sh
+tests/allow-skill-commands.test.sh
 ```
 
-No dependencies and no network. Every case installs into a throwaway `HOME`, so running the suite never touches your real `~/.claude`.
+No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`, and the hook cases only feed the hook a payload on stdin and read its answer.
 
 ## Skills
 
