@@ -6,7 +6,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr list" "gh pr view" "gh pr diff" "gh pr checks" "gh repo view" "date"'
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr list" "gh pr view" "gh pr diff" "gh pr checks" "gh repo view" "gh api repos/" "date"'
 ---
 
 Report the user's own pull request activity in the current repo, from a cutoff date up to now.

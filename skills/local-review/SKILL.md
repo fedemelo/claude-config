@@ -6,7 +6,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "git fetch" "git show" "git log" "git diff" "git status"'
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "gh api repos/" "git fetch" "git show" "git log" "git diff" "git status"'
 ---
 
 Act as an expert staff engineer reviewing a pull request.
