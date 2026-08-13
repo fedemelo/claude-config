@@ -60,11 +60,25 @@ def reads_only(seg):
     return not BODY_FLAG_RE.search(seg)
 
 
+def prefix_matches(seg, prefix):
+    """Whether a segment starts with an allowed prefix.
+
+    A prefix normally has to end on a space, so "git st" never stands in for
+    "git status". One ending in "/" is a path prefix instead, since an API path is
+    a single token and could not be matched on a space boundary at all.
+    """
+    if seg == prefix:
+        return True
+    if prefix.endswith("/"):
+        return seg.startswith(prefix)
+    return seg.startswith(prefix + " ")
+
+
 def segment_allowed(segment, prefixes):
     seg = normalize(segment)
     if not seg:
         return True
-    if not any(seg == p or seg.startswith(p + " ") for p in prefixes):
+    if not any(prefix_matches(seg, p) for p in prefixes):
         return False
     return reads_only(seg) if GH_API_RE.match(seg) else True
 
