@@ -6,7 +6,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "git branch" "git log" "git diff" "git status"'
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh api graphql" "git branch" "git log" "git diff" "git status"'
 ---
 
 Triage and act on the review feedback on a pull request. Fix the real issues in code, hand back replies for the ones that are not, and never publish anything yourself.

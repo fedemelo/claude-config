@@ -6,7 +6,7 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "git fetch" "git show" "git log" "git diff" "git status"'
+          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "gh api graphql" "git fetch" "git show" "git log" "git diff" "git status"'
 ---
 
 Audit a pull request's discussion once the replies are already posted. The question is whether everything said in that discussion is true of the code, and whether every point raised got an answer.
