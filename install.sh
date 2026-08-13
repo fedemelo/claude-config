@@ -42,3 +42,31 @@ echo "Linked CLAUDE.md, hooks, and skills into ~/.claude"
 [ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
 
 python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json"
+
+# The merge rewrites settings.json in place, and hooks name their script by path, so a file
+# Claude cannot parse or a hook pointing at a script that is not installed both fail silently
+# at the point of use rather than here.
+python3 - "$HOME/.claude/settings.json" "$HOME/.claude/hooks" <<'PY'
+import json, os, re, sys
+
+settings_path, hooks_dir = sys.argv[1], sys.argv[2]
+
+try:
+    with open(settings_path) as f:
+        settings = json.load(f)
+except (OSError, json.JSONDecodeError) as error:
+    sys.exit(f"FAILED: {settings_path} does not parse after the merge: {error}")
+
+missing = []
+for event, groups in settings.get("hooks", {}).items():
+    for group in groups:
+        for hook in group.get("hooks", []):
+            for script in re.findall(r"\.claude/hooks/([\w.-]+)", hook.get("command", "")):
+                if not os.path.exists(os.path.join(hooks_dir, script)):
+                    missing.append(f"{event} -> {script}")
+
+if missing:
+    sys.exit("FAILED: settings.json names hooks that are not installed: " + ", ".join(missing))
+
+print("Verified: settings.json parses and every hook it names is installed")
+PY
