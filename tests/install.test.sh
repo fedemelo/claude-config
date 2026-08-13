@@ -111,6 +111,30 @@ import json; print('PostToolUse' in json.load(open('$h/.claude/settings.json'))[
 check "your effortLevel is kept" "$(python3 -c "
 import json; print(json.load(open('$h/.claude/settings.json'))['effortLevel'])")" "high"
 
+echo "=== the merged settings.json is verified, not assumed ==="
+h="$(new_home)"
+out="$(install_into "$h")"
+check "the verification runs on a fresh install" "$(echo "$out" | grep -c 'Verified: settings.json parses')" "1"
+python3 - "$h/.claude/settings.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+settings = json.load(open(path))
+settings["hooks"]["PreToolUse"][0]["hooks"].append(
+    {"type": "command", "command": "python3 $HOME/.claude/hooks/never-installed.py"})
+json.dump(settings, open(path, "w"), indent=2)
+PY
+out="$(install_into "$h" 2>&1)"; code=$?
+check "a hook naming a missing script fails the install" "$code" "1"
+check "and says which one" "$(echo "$out" | grep -c 'never-installed.py')" "1"
+python3 -c "
+import json, sys
+path = '$h/.claude/settings.json'
+settings = json.load(open(path))
+settings['hooks']['PreToolUse'][0]['hooks'] = [
+    h for h in settings['hooks']['PreToolUse'][0]['hooks'] if 'never-installed' not in h['command']]
+json.dump(settings, open(path, 'w'), indent=2)"
+check "removing it makes the install pass again" "$(install_into "$h" >/dev/null 2>&1; echo $?)" "0"
+
 echo "=== re-running changes nothing ==="
 h="$(new_home)"; install_into "$h" >/dev/null
 before="$(cat "$h/.claude/settings.json")"
