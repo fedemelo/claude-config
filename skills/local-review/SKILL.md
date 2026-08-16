@@ -1,6 +1,7 @@
 ---
 name: local-review
 description: Reviews a GitHub PR as a staff engineer and returns numbered, categorized comments plus an APPROVE, COMMENT, or REQUEST CHANGES verdict in this session, without posting to the PR or changing code. Takes an optional PR number or URL (defaulting to the current branch's PR) and optional ticket context to check the PR fixes it. Use when asked to review a PR locally or without publishing comments.
+disallowed-tools: Edit Write NotebookEdit
 hooks:
   PreToolUse:
     - matcher: Bash
