@@ -57,7 +57,7 @@ This is the highest priority: correctness is judged against whether the change r
 
 1. Correctness: logic errors, edge cases, anything that could cascade to unintended effects.
 2. Unnecessary changes: anything that could have been done with less code or less churn.
-3. Intent: read the PR description as the author's statement of what they meant to do, and check the code against it. Say so whenever the two diverge, in the form "the description says X, the code does Y", and treat the divergence as a finding about the code or about a change the description never mentions. Never review the description itself: not its wording, its formatting, its length, or whether it is still up to date.
+3. Intent: read the PR description as the author's statement of what they meant to do, and check the code against it. Say so whenever the two diverge, in the form "the description says X, the code does Y", and treat the divergence as a finding about the code or about a change the description never mentions, anchored to the code that diverges rather than to the description. Never review the description itself: not its wording, its formatting, its length, or whether it is still up to date.
 4. Style and hygiene, however minor: `any`, unnecessary typecasts, non-pure functions, missing tests, and comments or JSDocs that fail the [[comment-hygiene]] standard.
 
 ## Comment format
@@ -67,8 +67,8 @@ Number the comments sequentially and write each as:
 ```
 1.
 Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
-Line: <piece of code so it can be found with ctrl+F>
-File: <file path>
+Line: <piece of code from the diff so it can be found with ctrl+F>
+File: <path of the file that code lives in>
 Reasoning: <the full case for the finding>
 
 Comment: <the comment as it will be posted>
@@ -76,6 +76,8 @@ Comment: <the comment as it will be posted>
 2.
 ...
 ```
+
+Every comment is posted on a line of code, so Line and File always point at code the diff touches, and never at the PR description, the title, the commit messages, or anything else outside a file. Such a line always exists. A problem that is real now and was not real before was caused by something this PR changed, however long the chain from cause to effect, so anchor the comment to the line that caused it: the new call for the case it fails to handle, the changed signature for the caller left behind, the new branch for the test that does not cover it. When nothing in the diff caused it, the problem predates the PR and is not this review's business.
 
 Reproduce that layout exactly, including the blank line before the comment. The comment is the part the user acts on, so it has to be findable at a glance rather than buried against the reasoning above it.
 
