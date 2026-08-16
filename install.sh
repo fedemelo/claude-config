@@ -18,13 +18,19 @@ fi
 ln -sf "$repo_dir/CLAUDE.md" "$claude_md"
 
 # Links whose target no longer exists are skills and hooks renamed or removed upstream.
-# Nothing else prunes them, and a stale skill directory stays visible to Claude.
+# Nothing else prunes them, and a stale skill stays listed as one Claude cannot load. Only
+# links pointing back into this repo are touched: a skill symlinked in from somewhere else can
+# be temporarily unresolvable, and deleting it then would break an install this does not own.
 pruned=0
 for link in "$HOME/.claude/hooks"/* "$HOME/.claude/skills"/*; do
   if [ -L "$link" ] && [ ! -e "$link" ]; then
-    echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
-    rm "$link"
-    pruned=$((pruned + 1))
+    case "$(readlink "$link")" in
+      "$repo_dir"/*)
+        echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
+        rm "$link"
+        pruned=$((pruned + 1))
+        ;;
+    esac
   fi
 done
 
