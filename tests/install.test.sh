@@ -65,6 +65,15 @@ check "both prunes are reported" "$(echo "$out" | grep -c 'Pruned stale link')" 
 check "a real skill directory of your own is kept" "$(test -f "$h/.claude/skills/my-own/SKILL.md" && echo yes)" "yes"
 check "the repo skills are still linked" "$(ls "$h/.claude/skills" | grep -vc my-own)" "$skill_count"
 
+echo "=== links owned by anything else are left alone, broken or not ==="
+h="$(new_home)"; install_into "$h" >/dev/null
+ln -sfn "/nonexistent/elsewhere/skills/theirs" "$h/.claude/skills/theirs"
+ln -sfn "/nonexistent/elsewhere/hooks/theirs.py" "$h/.claude/hooks/theirs.py"
+out="$(install_into "$h")"
+check "a broken skill link from elsewhere survives" "$(test -L "$h/.claude/skills/theirs" && echo kept)" "kept"
+check "a broken hook link from elsewhere survives" "$(test -L "$h/.claude/hooks/theirs.py" && echo kept)" "kept"
+check "nothing is reported as pruned" "$(echo "$out" | grep -c 'Pruned')" "0"
+
 echo "=== a hook whose arguments changed upstream is updated in place ==="
 h="$(new_home)"; install_into "$h" >/dev/null
 python3 - "$h/.claude/settings.json" <<'PY'
