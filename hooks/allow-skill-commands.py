@@ -16,7 +16,10 @@ import json
 import re
 import sys
 
-SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||;|\||\n")
+# Every separator Claude Code's own Bash permission matching recognises, so a command cannot
+# smuggle a second one past a declared prefix. `&&` and `||` precede `&` and `|` in the
+# alternation to be consumed first, and `|&` splits on both, leaving a harmless empty segment.
+SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||;|\||&|\n")
 DANGEROUS_RE = re.compile(r"`|\$\(|>|<")
 GH_API_RE = re.compile(r"gh api\b")
 GRAPHQL_RE = re.compile(r"gh api graphql\b")
