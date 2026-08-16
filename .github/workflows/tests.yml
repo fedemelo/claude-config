@@ -1,0 +1,27 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    # macOS, not Linux: this config installs onto macOS, and the installer depends on platform
+    # behaviour a Linux runner would not exercise, from `ln -sfn` on an existing directory
+    # symlink to empty-array expansion under bash 3.2.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Globbed rather than listed, so a suite added later runs without editing this file.
+      # Every suite is collected before failing, so one run reports all of them.
+      - name: Run test suites
+        run: |
+          status=0
+          for suite in tests/*.test.sh; do
+            echo "::group::$suite"
+            "$suite" || status=1
+            echo "::endgroup::"
+          done
+          exit $status
