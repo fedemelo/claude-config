@@ -39,6 +39,19 @@ check "a path prefix still has to match" "$(verdict "gh api reposx/y" "gh api re
 check "redirection is never allowed" "$(verdict "git status > /tmp/x" "git status")" "silent"
 check "substitution is never allowed" "$(verdict "git show \$(git rev-parse HEAD)" "git show")" "silent"
 
+# Every separator Claude Code's own Bash matching recognises, each carrying a command that was
+# not declared. Missing one lets a declared prefix drag an undeclared command in behind it.
+echo "=== a second command hides behind no separator ==="
+check "&& is a separator" "$(verdict "git status && git push" "git status")" "silent"
+check "|| is a separator" "$(verdict "git status || git push" "git status")" "silent"
+check "; is a separator" "$(verdict "git status ; git push" "git status")" "silent"
+check "| is a separator" "$(verdict "git status | git push" "git status")" "silent"
+check "& is a separator" "$(verdict "git status & git push" "git status")" "silent"
+check "|& is a separator" "$(verdict "git status |& git push" "git status")" "silent"
+check "a newline is a separator" "$(verdict "git status
+git push" "git status")" "silent"
+check "trailing & alone is still allowed" "$(verdict "git status &" "git status")" "allow"
+
 echo "=== a gh api call may read, never write ==="
 check "a plain GET is allowed" \
   "$(verdict "gh api repos/{owner}/{repo}/pulls/1/comments" "gh api repos/")" "allow"
