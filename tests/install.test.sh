@@ -120,6 +120,29 @@ import json; print('PostToolUse' in json.load(open('$h/.claude/settings.json'))[
 check "your effortLevel is kept" "$(python3 -c "
 import json; print(json.load(open('$h/.claude/settings.json'))['effortLevel'])")" "high"
 
+echo "=== the read-only permission rules are merged in ==="
+h="$(new_home)"; install_into "$h" >/dev/null
+rules() { python3 -c "
+import json, sys
+print('\n'.join(json.load(open(sys.argv[1]))['permissions']['allow']))" "$h/.claude/settings.json"; }
+expected_rules="$(python3 -c "
+import json
+print(len(json.load(open('$repo_root/settings.json.example'))['permissions']['allow']))")"
+check "every rule from the example is installed" "$(rules | wc -l | tr -d ' ')" "$expected_rules"
+check "a read-only command is covered" "$(rules | grep -c 'Bash(gh pr view \*)')" "1"
+check "no broad gh api rule is granted" "$(rules | grep -c 'gh api')" "0"
+check "no mutating command is granted" "$(rules | grep -cE 'git commit|git push|git land|git todo|gh pr create')" "0"
+python3 - "$h/.claude/settings.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+settings = json.load(open(path))
+settings["permissions"]["allow"].append("Bash(my-own-tool *)")
+json.dump(settings, open(path, "w"), indent=2)
+PY
+out="$(install_into "$h")"
+check "a rule you approved yourself is kept" "$(rules | grep -c 'my-own-tool')" "1"
+check "re-running adds nothing" "$(echo "$out" | grep -c 'Added permission rule')" "0"
+
 echo "=== the merged settings.json is verified, not assumed ==="
 h="$(new_home)"
 out="$(install_into "$h")"
