@@ -1,5 +1,7 @@
 # claude-config
 
+> **New machine, or after any pull:** `git pull && ./install.sh` in [git-tools](https://github.com/fedemelo/git-tools) first, then the same here. Editing a skill takes effect immediately through the symlinks, but adding or removing one does not.
+
 Global Claude Code setup: opinionated skills, the instructions they follow, and the hooks that enforce them.
 
 ## Why this repo
@@ -38,10 +40,11 @@ It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges 
 
 ```sh
 tests/install.test.sh
-tests/allow-skill-commands.test.sh
+tests/enforce-commit-skill.test.sh
+tests/require-git-land-todo-tools.test.sh
 ```
 
-No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`, and the hook cases only feed the hook a payload on stdin and read its answer.
+No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`, and the hook cases only feed the hook a payload on stdin, plus a throwaway transcript where the hook reads one, and read its answer.
 
 ## Skills
 
@@ -63,4 +66,5 @@ Each links to its full definition. The one-liner here is why it's useful and how
 ## Also included
 
 - **`CLAUDE.md`** — global rules applied to every project: commit discipline, self-documenting code, single responsibility, DRY.
-- **`hooks/`** — three `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; one blocks `git land` / `git todo` until the git-tools executables are installed; and one, declared in each command-running skill's frontmatter and active only while that skill is in use, auto-approves the specific commands that skill needs so they don't trigger a permission prompt.
+- **`hooks/`** — two `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` until the git-tools executables are installed. Both encode a condition no permission rule can express, which is why they are hooks: one reads the session's history, the other the filesystem.
+- **`settings.json.example`** — merged into `~/.claude/settings.json` on install, adding the hooks above without disturbing settings of your own. It grants no pre-approved commands: in auto mode the classifier reviews what the rules do not settle, and an allow rule would take those commands out of that review.
