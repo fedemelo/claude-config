@@ -42,9 +42,25 @@ It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges 
 tests/install.test.sh
 tests/enforce-commit-skill.test.sh
 tests/require-git-land-todo-tools.test.sh
+tests/copy-prompt.test.sh
 ```
 
 No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`, and the hook cases only feed the hook a payload on stdin, plus a throwaway transcript where the hook reads one, and read its answer.
+
+## Using a skill outside Claude Code
+
+Some tools cannot load skills, and the only way to use one there is to paste it as a prompt. `make <skill>` puts it on the clipboard for you:
+
+```sh
+make local-review
+# Copied to clipboard: local-review, comment-hygiene, plain-english
+make list          # the skills you can copy
+```
+
+What lands on the clipboard is the skill's content without its frontmatter, headed by a title and wrapped in `"""`, followed by the standards it references in the same shape.
+
+Only standards travel with a prompt, and they travel all the way down: a standard is text the skill has to obey while writing its output, so the paste is unusable without it. 
+A skill it merely names, like commit, is a procedure followed as its own step, so pasting it would bury the task in instructions for a different one. Those are listed in a closing block instead, which tells the model why the reference is there, why the text is not, and to ask you for it if the work reaches it:
 
 ## Skills
 
