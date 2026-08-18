@@ -15,6 +15,16 @@ if not target_path.exists():
 
 target = json.loads(target_path.read_text())
 
+# Appended rather than replaced: the list also holds whatever you approved with "don't ask
+# again", and those rules are yours.
+for rule in example.get("permissions", {}).get("allow", []):
+    allowed = target.setdefault("permissions", {}).setdefault("allow", [])
+    if rule in allowed:
+        print(f"Permission rule already present, left as-is: {rule}")
+    else:
+        allowed.append(rule)
+        print(f"Added permission rule: {rule}")
+
 target_groups = target.setdefault("hooks", {}).setdefault("PreToolUse", [])
 target_groups_by_matcher = {g["matcher"]: g for g in target_groups}
 
