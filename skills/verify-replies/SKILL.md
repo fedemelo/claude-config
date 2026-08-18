@@ -2,12 +2,6 @@
 name: verify-replies
 description: Audits the discussion on a PR after the replies have been posted, checking every claim in them against the code and finding points that were raised but never answered. Flags what is wrong, partial, missed, imprecise, or left dangling, and changes nothing. Takes an optional PR number or URL, defaulting to the current branch's PR. Use when asked to verify, audit, or double-check the replies or the discussion on a PR.
 disallowed-tools: Edit Write NotebookEdit
-hooks:
-  PreToolUse:
-    - matcher: Bash
-      hooks:
-        - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "gh api graphql" "git fetch" "git show" "git log" "git diff" "git status"'
 ---
 
 Audit a pull request's discussion once the replies are already posted. The question is whether everything said in that discussion is true of the code, and whether every point raised got an answer.

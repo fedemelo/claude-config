@@ -2,12 +2,6 @@
 name: second-opinion
 description: "Gives an informed opinion on a comment someone left on a PR: refetches so the view is current, works out which comment is meant without being told, checks the claim against the code, and says plainly whether it holds. Never changes code, posts, replies, or drafts a reply. Use when asked what you think or wdyt about a comment, or for a take on someone's review feedback."
 disallowed-tools: Edit Write NotebookEdit
-hooks:
-  PreToolUse:
-    - matcher: Bash
-      hooks:
-        - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr view" "gh pr diff" "gh api user" "gh api graphql" "git fetch" "git show" "git log" "git diff" "git status"'
 ---
 
 Someone commented on a pull request and the user wants to know what you make of it. Give a real opinion on whether the comment is right, grounded in the code rather than in the comment's own confidence.

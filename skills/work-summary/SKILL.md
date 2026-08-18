@@ -2,12 +2,6 @@
 name: work-summary
 description: "Summarizes the user's own pull request activity in the current repo from a cutoff date to now: PRs still open, PRs merged, and PRs closed without merging, each with a one-line summary of what it does plus review and CI state. Use when asked what work was done, for a recap, or for a status update over a period."
 disallowed-tools: Edit Write NotebookEdit
-hooks:
-  PreToolUse:
-    - matcher: Bash
-      hooks:
-        - type: command
-          command: 'python3 $HOME/.claude/hooks/allow-skill-commands.py "gh pr list" "gh pr view" "gh pr diff" "gh pr checks" "gh repo view" "gh api repos/" "date"'
 ---
 
 Report the user's own pull request activity in the current repo, from a cutoff date up to now.
