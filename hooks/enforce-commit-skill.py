@@ -3,8 +3,8 @@
 
 Reads the PreToolUse hook JSON from stdin. If the Bash command being run is a
 `git commit`, checks this session's transcript for evidence that the `commit`
-skill was already invoked (a Skill tool_use with input.skill == "commit").
-If not found, blocks the command and tells the model to invoke the skill first.
+skill was already invoked. If not found, blocks the command and tells the model
+to invoke the skill first.
 """
 
 import json
@@ -12,7 +12,17 @@ import re
 import sys
 
 COMMIT_COMMAND_RE = re.compile(r"(^|;|&&|\|\||\|)\s*git\s+commit(\s|$)")
-SKILL_INVOKED_RE = re.compile(r'"name"\s*:\s*"Skill".{0,200}?"skill"\s*:\s*"commit"')
+
+# Installed as a plugin, the skill is namespaced as <plugin>:commit everywhere below.
+SKILL_NAME = r"(?:[\w-]+:)?commit"
+
+# The two ways the skill gets loaded leave different traces. Claude invoking it leaves a
+# Skill tool call; the user typing /commit leaves none, since the CLI expands the skill
+# itself and only records the command name.
+SKILL_INVOKED_RE = re.compile(
+    r'"name"\s*:\s*"Skill".{0,200}?"skill"\s*:\s*"' + SKILL_NAME + r'"'
+    r"|<command-name>/" + SKILL_NAME + r"</command-name>"
+)
 
 
 def allow():
