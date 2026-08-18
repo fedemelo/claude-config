@@ -10,8 +10,6 @@ Hard constraints: this is a read-only report. Never open, close, merge, comment 
 
 Run the commands below as written rather than devising your own. Each is the cheapest form that answers its question, and the obvious alternatives are far more expensive: `gh pr view <n>` and `gh pr view <n> --comments` reprint an entire PR to surface one field, and raw `--json` output for as few as three PRs runs past 50 KB, most of it `body` and `statusCheckRollup`. Every command therefore ends in `--template`, which renders locally so only the rendered lines are read. Fields named in `--json` but collapsed by the template cost nothing to read, so keep the field lists as given.
 
-Three syntax rules keep these commands from stalling on a permission prompt. Never use command substitution (`$(...)`) or redirection. Never use `--jq`, whose pipes read as separate commands. And keep `|` and `;` out of the template strings themselves, for the same reason, which is why the templates below separate fields with `--`.
-
 ## Resolve the window and the repo
 
 1. The cutoff date is the argument. Accept `YYYY-MM-DD` or relative wording ("last Friday", "3 days ago", "the last 5 days"), resolving relative wording to a concrete date with `date` (`date +%F` for today, `date -v-<n>d +%F` for a number of days back). With no argument, use 7 days ago.
@@ -25,11 +23,11 @@ Three syntax rules keep these commands from stalling on a permission prompt. Nev
 One command per section, and each PR lands in exactly one section, so the queries do not overlap. Below, `<from>` is the resolved cutoff written as `YYYY-MM-DDT00:00:00-0500`, with the real local offset.
 
 ```sh
-gh pr list --author @me --state open --search "created:<from>..*" --limit 100 --json number,title,body,createdAt,isDraft,reviewRequests,reviews --template '{{range .}}#{{.number}} {{.title}} -- created {{timefmt "2006-01-02" .createdAt}} draft={{.isDraft}} requested={{len .reviewRequests}} reviews={{len .reviews}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
+gh pr list --author @me --state open --search "created:<from>..*" --limit 100 --json number,title,body,createdAt,isDraft,reviewRequests,reviews --template '{{range .}}#{{.number}} {{.title}} | created {{timefmt "2006-01-02" .createdAt}} draft={{.isDraft}} requested={{len .reviewRequests}} reviews={{len .reviews}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
 
-gh pr list --author @me --state merged --search "merged:<from>..*" --limit 100 --json number,title,body,createdAt,mergedAt,mergedBy --template '{{range .}}#{{.number}} {{.title}} -- merged {{timefmt "2006-01-02" .mergedAt}} by {{.mergedBy.login}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
+gh pr list --author @me --state merged --search "merged:<from>..*" --limit 100 --json number,title,body,createdAt,mergedAt,mergedBy --template '{{range .}}#{{.number}} {{.title}} | merged {{timefmt "2006-01-02" .mergedAt}} by {{.mergedBy.login}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
 
-gh pr list --author @me --state all --search "closed:<from>..* is:unmerged" --limit 100 --json number,title,body,createdAt,closedAt --template '{{range .}}#{{.number}} {{.title}} -- opened {{timefmt "2006-01-02" .createdAt}} closed {{timefmt "2006-01-02" .closedAt}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
+gh pr list --author @me --state all --search "closed:<from>..* is:unmerged" --limit 100 --json number,title,body,createdAt,closedAt --template '{{range .}}#{{.number}} {{.title}} | opened {{timefmt "2006-01-02" .createdAt}} closed {{timefmt "2006-01-02" .closedAt}}{{"\n"}}{{truncate 400 .body}}{{"\n\n"}}{{end}}'
 ```
 
 1. Write the search as an open-ended range, `<from>..*`, never `>=<from>`.
