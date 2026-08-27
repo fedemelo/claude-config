@@ -57,10 +57,11 @@ make local-review
 make list          # the skills you can copy
 ```
 
-What lands on the clipboard is the skill's content without its frontmatter, headed by a title and wrapped in `"""`, followed by the standards it references in the same shape.
+What lands on the clipboard is the skill's content without its frontmatter, headed by a title and wrapped in `"""`, followed by whatever it references in the same shape.
 
-Only standards travel with a prompt, and they travel all the way down: a standard is text the skill has to obey while writing its output, so the paste is unusable without it. 
-A skill it merely names, like commit, is a procedure followed as its own step, so pasting it would bury the task in instructions for a different one. Those are listed in a closing block instead, which tells the model why the reference is there, why the text is not, and to ask you for it if the work reaches it:
+A reference travels with the prompt when the task cannot be done without it, and it travels all the way down. That covers the standards it has to obey while writing its output, and the odd skill whose procedure is the body of the work rather than a step beside it, as work-summary is inside daily-update.
+
+A skill it merely names, like commit, is followed as its own step, so pasting it would bury the task in instructions for a different one. Those are listed in a closing block instead, which tells the model why the reference is there, why the text is not, and to ask you for it if the work reaches it.
 
 ## Skills
 
@@ -75,6 +76,7 @@ Each links to its full definition. The one-liner here is why it's useful and how
 - **[land](skills/land/SKILL.md)** — ships committed work with a single `git land` instead of a manual `gh pr create`/`merge` dance. Wraps the commits in a disposable, auto-merged PR so solo work lands with a paper trail and no ceremony, and can split a stack into several PRs (`--until`) or one PR per commit (`--each`).
 - **[todo](skills/todo/SKILL.md)** — files a GitHub issue with `git todo`, auto-assigned to you with the right defaults, instead of recalling `gh issue create` flags.
 - **[work-summary](skills/work-summary/SKILL.md)** — recaps your own PR activity in the current repo from a cutoff date to now, split into still open, merged, and closed without merging. Each PR gets a line saying what it actually does, plus review and CI state for the open ones and the stated closing reason (never a guessed one) for the closed ones.
+- **[daily-update](skills/daily-update/SKILL.md)** — turns that same PR activity into the update you post to your team. Not a recap: it regroups the PRs into the two or three initiatives they belong to, drops the chores nobody gains from reading about, and hyperlinks a single word per PR inside the sentence. The rules for what belongs in such an update are external, so they are quoted in the skill rather than paraphrased, examples included.
 - **[comment-hygiene](skills/comment-hygiene/SKILL.md)** — the shared rule for which comments are worth keeping (only what the code can't say itself). Used alone to strip noise, and referenced by the review skills and `CLAUDE.md`.
 - **[pr-description](skills/pr-description/SKILL.md)** — the shared standard for PR descriptions: at most two short paragraphs, no formatting, no fluff. Used by open-pr when writing one.
 - **[plain-english](skills/plain-english/SKILL.md)** — the shared standard for anything another person reads: B2-level English, technical terms allowed but metaphors and corporate fluff banned, no chains of function names, nothing that reads as AI-written. Referenced by local-review, address-review, and pr-description, so their output is postable as is instead of needing a rewrite first.
