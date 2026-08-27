@@ -42,15 +42,20 @@ check "the first line of the prompt survives" \
 check "the references stay written as they are in the skill" \
   "$(render local-review | grep -c '\[\[comment-hygiene\]\]')" "1"
 
-echo "=== standards travel with the prompt, all the way down and once each ==="
+echo "=== what the prompt cannot run without travels with it, all the way down and once each ==="
 check "a standard's own standards come too" "$(titles open-pr | tr '\n' '|')" \
   "OPEN PR GUIDELINES|PR DESCRIPTION STANDARD|PLAIN ENGLISH STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
 check "a standard reached twice is rendered once" \
   "$(titles address-review | grep -c 'PLAIN ENGLISH STANDARD')" "1"
 check "a cycle between standards terminates" \
   "$(titles pr-description | tr '\n' '|')" "PR DESCRIPTION STANDARD|PLAIN ENGLISH STANDARD|"
+check "a skill the prompt runs on travels too, not just standards" \
+  "$(titles daily-update | tr '\n' '|')" \
+  "DAILY UPDATE GUIDELINES|WORK SUMMARY GUIDELINES|PLAIN ENGLISH STANDARD|"
+check "nothing is left out of a bundle that includes every reference" \
+  "$(titles daily-update | grep -c 'NOT INCLUDED')" "0"
 
-echo "=== guidelines are named, not pasted ==="
+echo "=== a procedure followed as its own step is named, not pasted ==="
 check "address-review does not drag the commit chain in" \
   "$(titles address-review | tr '\n' '|')" \
   "ADDRESS REVIEW GUIDELINES|PLAIN ENGLISH STANDARD|COMMENT HYGIENE STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
@@ -78,8 +83,8 @@ check "make list names every skill" \
   "$(cd "$repo_root" && make list | sort | tr '\n' ' ')" "$(skill_dirs | tr '\n' ' ')"
 check "no title is left behind for a skill that is gone" \
   "$(cd "$repo_root" && python3 -B -c 'import copy_prompt as c; print(" ".join(sorted(set(c.TITLES) - set(c.available()))))')" ""
-check "no skill is both a standard and guidelines" \
-  "$(cd "$repo_root" && python3 -B -c 'import copy_prompt as c; print(" ".join(sorted(set(c.STANDARDS) & set(c.GUIDELINES))))')" ""
+check "no skill is both included and named-only" \
+  "$(cd "$repo_root" && python3 -B -c 'import copy_prompt as c; print(" ".join(sorted(set(c.INCLUDED) & set(c.NAMED_ONLY))))')" ""
 
 echo "=== a name that is not a skill fails loudly ==="
 check "an unknown skill exits non-zero" "$(render nope >/dev/null 2>&1; echo $?)" "1"
