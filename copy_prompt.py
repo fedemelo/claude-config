@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Puts a skill's prompt on the clipboard, together with the standards it has to obey.
+"""Puts a skill's prompt on the clipboard, together with the documents it cannot run without.
 
 For tools that cannot load skills, where the only way to use one is to paste it as a prompt.
 """
@@ -16,29 +16,32 @@ SKILLS_DIR = Path(__file__).resolve().parent / "skills"
 # A title heads each block, because a pasted prompt arrives without the name and description the
 # skill file carries.
 #
-# The two groups decide what travels with a prompt. A standard is text the prompt has to obey
-# while writing its output, so it is useless to the reader without it and gets pasted alongside.
-# Guidelines are a procedure of their own, invoked as a separate step, so a prompt that names one
-# still works without it: pasting it would only bury the task in instructions for another one.
-STANDARDS = {
+# The two groups decide what travels with a prompt, and the test is whether the task survives the
+# reference being missing. Included documents are the ones the prompt runs on: the standards it
+# has to obey while writing its output, and a skill whose procedure is the body of the work, as
+# work-summary is inside daily-update. Named-only documents are a procedure of their own, invoked
+# as a separate step, so a prompt that names one still works without it: pasting it would only
+# bury the task in instructions for another one.
+INCLUDED = {
     "comment-hygiene": "COMMENT HYGIENE STANDARD",
     "plain-english": "PLAIN ENGLISH STANDARD",
     "pr-description": "PR DESCRIPTION STANDARD",
+    "work-summary": "WORK SUMMARY GUIDELINES",
 }
 
-GUIDELINES = {
+NAMED_ONLY = {
     "address-review": "ADDRESS REVIEW GUIDELINES",
     "commit": "COMMIT GUIDELINES",
+    "daily-update": "DAILY UPDATE GUIDELINES",
     "land": "LAND GUIDELINES",
     "local-review": "LOCAL REVIEW GUIDELINES",
     "open-pr": "OPEN PR GUIDELINES",
     "second-opinion": "SECOND OPINION GUIDELINES",
     "todo": "TODO GUIDELINES",
     "verify-replies": "VERIFY REPLIES GUIDELINES",
-    "work-summary": "WORK SUMMARY GUIDELINES",
 }
 
-TITLES = {**STANDARDS, **GUIDELINES}
+TITLES = {**INCLUDED, **NAMED_ONLY}
 
 OMISSION_TITLE = "REFERENCED DOCUMENTS NOT INCLUDED"
 
@@ -54,7 +57,7 @@ def title_of(skill):
     if not (SKILLS_DIR / skill / "SKILL.md").is_file():
         sys.exit(f"No skill named {skill}. Available: {', '.join(available())}")
     if skill not in TITLES:
-        sys.exit(f"No title for {skill}. Add it to STANDARDS or GUIDELINES in {Path(__file__).name}")
+        sys.exit(f"No title for {skill}. Add it to INCLUDED or NAMED_ONLY in {Path(__file__).name}")
     return TITLES[skill]
 
 
@@ -69,15 +72,15 @@ def references_of(skill):
 
 
 def bundle(root):
-    """The skill, the standards it reaches through [[references]], and the skills it names that
-    were left out. Order of first mention, each skill once."""
+    """The skill, the documents it reaches through [[references]] that it cannot run without,
+    and the skills it merely names, which were left out. Order of first mention, each skill once."""
     included, queue = [], deque([root])
     while queue:
         skill = queue.popleft()
         if skill in included:
             continue
         included.append(skill)
-        queue.extend(reference for reference in references_of(skill) if reference in STANDARDS)
+        queue.extend(reference for reference in references_of(skill) if reference in INCLUDED)
 
     omitted = []
     for skill in included:
