@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Tests require-git-land-todo-tools.py, the hook that blocks `git land` / `git todo` when the
+# Tests require-git-tools.py, the hook that blocks a git-tools subcommand when the
 # git-tools executables are missing. Presence is decided by PATH, so each case runs the hook
 # with a PATH that either holds stub executables or holds none.
 set -uo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-hook="$repo_root/hooks/require-git-land-todo-tools.py"
+hook="$repo_root/hooks/require-git-tools.py"
 
 ROOT="$(mktemp -d)"
 trap 'rm -rf "$ROOT"' EXIT
@@ -15,7 +15,8 @@ trap 'rm -rf "$ROOT"' EXIT
 mkdir -p "$ROOT/installed" "$ROOT/bare"
 printf '#!/bin/sh\n' > "$ROOT/installed/git-land"
 printf '#!/bin/sh\n' > "$ROOT/installed/git-todo"
-chmod +x "$ROOT/installed/git-land" "$ROOT/installed/git-todo"
+printf '#!/bin/sh\n' > "$ROOT/installed/git-review-feedback"
+chmod +x "$ROOT/installed/git-land" "$ROOT/installed/git-todo" "$ROOT/installed/git-review-feedback"
 python_dir="$(dirname "$(command -v python3)")"
 WITH_TOOLS="$ROOT/installed:$python_dir:/usr/bin:/bin"
 WITHOUT_TOOLS="$ROOT/bare:$python_dir:/usr/bin:/bin"
@@ -49,13 +50,17 @@ reason() { # the message shown to the model when blocked
 echo "=== with the tools installed, nothing is blocked ==="
 check "git land runs" "$(verdict 'git land' "$WITH_TOOLS")" "allow"
 check "git todo runs" "$(verdict 'git todo Something' "$WITH_TOOLS")" "allow"
+check "git review-feedback runs" "$(verdict 'git review-feedback 7' "$WITH_TOOLS")" "allow"
 
 echo "=== with the tools missing, their commands are blocked ==="
 check "git land is blocked" "$(verdict 'git land' "$WITHOUT_TOOLS")" "deny"
 check "git land with a title is blocked" "$(verdict 'git land \"A title\"' "$WITHOUT_TOOLS")" "deny"
 check "git todo is blocked" "$(verdict 'git todo Something' "$WITHOUT_TOOLS")" "deny"
+check "git review-feedback is blocked" "$(verdict 'git review-feedback' "$WITHOUT_TOOLS")" "deny"
+check "git review-feedback with flags is blocked" "$(verdict 'git review-feedback 7 --all' "$WITHOUT_TOOLS")" "deny"
 check "the reason names git-land" "$(reason 'git land' | grep -c 'git-land')" "1"
 check "the reason names git-todo" "$(reason 'git todo x' | grep -c 'git-todo')" "1"
+check "the reason names git-review-feedback" "$(reason 'git review-feedback' | grep -c 'git-review-feedback')" "1"
 
 echo "=== a blocked command is only ever the one that is missing ==="
 only_land="$ROOT/only-land:$python_dir:/usr/bin:/bin"
