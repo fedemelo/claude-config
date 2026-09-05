@@ -19,34 +19,25 @@ Resolve it with [[pr-target]].
 
 ## Gather the whole discussion
 
-Points hide in every corner of a PR, so read all four sources before judging any of them.
+Points hide in every corner of a PR, so read both sources before judging any of them.
 
-1. Inline review threads, with every comment in each thread:
-
-```sh
-gh api graphql -F owner='{owner}' -F name='{repo}' -F number=<n> -f query='
-query($owner:String!,$name:String!,$number:Int!){
-  repository(owner:$owner,name:$name){ pullRequest(number:$number){
-    reviewThreads(first:100){nodes{ isResolved isOutdated path line
-      comments(first:50){nodes{ author{ login kind:__typename } body }}}}}}}' \
-  --template '{{range .data.repository.pullRequest.reviewThreads.nodes}}{{.path}}:{{.line}} resolved={{.isResolved}} outdated={{.isOutdated}}{{"\n"}}{{range .comments.nodes}}  {{.author.login}} [{{.author.kind}}]: {{.body}}{{"\n"}}{{end}}{{"\n"}}{{end}}'
-```
-
-Read resolved and unresolved threads alike. A resolved thread proves only that someone clicked resolve, never that the reply in it was right.
-
-2. Review summaries, whose bodies raise points that belong to no thread and are the most commonly missed source of all:
+1. Every point anybody made, from all three places they live:
 
 ```sh
-gh pr view <pr> --json reviews --template '{{range .reviews}}{{.author.login}} [{{.state}}]: {{.body}}{{"\n\n"}}{{end}}'
+git review-feedback <pr> --all
 ```
 
-3. Conversation comments:
+`--all` because a resolved thread has to be audited too: resolving proves only that someone
+clicked resolve, never that the reply in it was right. The output covers inline threads, the body
+of every submitted review, and conversation comments. A review body is the most commonly missed
+of the three, since nothing about it looks like an open comment, and it is where a point with no
+thread to answer it ends up. Each point carries an id (`R1`, `T1`, `C1`) to name in your findings,
+and the header prints the PR number that the commands below need. If `git-review-feedback` is not
+installed, a hook blocks it and says so; report that rather than rebuilding it out of raw `gh`
+calls, since that is how a source gets dropped.
 
-```sh
-gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}: {{.body}}{{"\n"}}{{end}}'
-```
-
-4. The code as it stands now, which is the only thing that settles whether a reply is true. Fetch the head without checking out, and read the commits so a claimed fix can be traced to one:
+2. The code as it stands now, which is the only thing that settles whether a reply is true. Fetch
+   the head without checking out, and read the commits so a claimed fix can be traced to one:
 
 ```sh
 gh pr diff <pr>

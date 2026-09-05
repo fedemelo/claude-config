@@ -14,31 +14,42 @@ Pushing is allowed only when the user explicitly asks for it; else, the work sta
 
 Resolve it with [[pr-target]].
 
-## Get the comments
-
-Inline review comments come from GraphQL, which is the only source that reports whether a thread is resolved. The REST endpoint `repos/{owner}/{repo}/pulls/{n}/comments` carries no resolution field of any kind, so it cannot tell an open thread from one settled weeks ago; do not use it here. Below, `<pr>` is the given number or URL, or empty to target the current branch's PR. Get the number the query needs with `gh pr view <pr> --json number --template '{{.number}}'`, then:
+## Get the feedback
 
 ```sh
-gh api graphql -F owner='{owner}' -F name='{repo}' -F number=<n> -f query='
-query($owner:String!,$name:String!,$number:Int!){
-  repository(owner:$owner,name:$name){ pullRequest(number:$number){
-    reviewThreads(first:100){nodes{ isResolved isOutdated path line
-      comments(first:20){nodes{ author{ login kind:__typename } body }}}}}}}' \
-  --template '{{range .data.repository.pullRequest.reviewThreads.nodes}}{{if not .isResolved}}{{.path}}:{{.line}} outdated={{.isOutdated}}{{"\n"}}{{range .comments.nodes}}  {{.author.login}} [{{.author.kind}}]: {{.body}}{{"\n"}}{{end}}{{"\n"}}{{end}}{{end}}'
+git review-feedback <pr>
 ```
 
-Conversation comments have no notion of resolution, so read them separately. Use `--json comments` with a template rather than `--comments`, which reprints the whole PR body and every comment in full:
+One command, and the only one to use. `<pr>` is the number, URL or branch, omitted for the
+current branch's PR.
 
-```sh
-gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}: {{.body}}{{"\n"}}{{end}}'
-```
+Feedback on a PR lives in three places that no two of them overlap: inline review threads, the
+body attached to a submitted review, and conversation comments. No single `gh` command returns
+all three, so fetching them by hand is how a review gets addressed in part while looking
+complete, and the body attached to an approval is what goes missing. This returns all three from
+one query. If `git-review-feedback` is not installed, a hook blocks it and says so; report that
+to the user rather than rebuilding it out of raw `gh` calls, since that is the very thing that
+drops a source.
 
-1. `{owner}` and `{repo}` in the GraphQL command are substituted by `gh`, so it works in any repo without resolving the name first.
-2. The template filters on `isResolved`, so what comes back is already the set to act on. Address all of it by default. To include resolved threads when the user asks, drop the `{{if not .isResolved}}` guard. If the user named specific comments ("just Dan's two"), scope to those.
-3. `outdated=true` means the thread points at code that has since changed; re-read the current file before deciding, since the comment may already be moot.
-4. `kind` is the author's GraphQL type, `User` or `Bot`, which settles human versus bot authoritatively rather than by guessing from the login. Do not pattern-match names: GitHub's own reviewer posts as `copilot-pull-request-reviewer`, and bot logins change. This only changes how a reply is phrased when the comment turns out not to be a real issue.
-5. Raise `first:100` or `first:20` only if a PR is large enough to truncate.
-6. If a comment cannot be fetched because it lives somewhere `gh` does not reach, ask the user to paste it, then treat it identically.
+1. Resolved threads are hidden and counted, so what comes back is already the set to act on.
+   Address all of it by default. Pass `--all` when the user asks for resolved threads too, and
+   `--author <logins>` when they named specific reviewers ("just Dan's two").
+2. Every point carries an id: `R1` for a review body, `T1` for a thread, `C1` for a conversation
+   comment. Use those ids in your response so each reply is unambiguous about what it answers.
+3. `APPROVED` on a review body does not mean there is nothing to do. An approval often carries a
+   request, and it is triaged like any other point.
+4. A review body takes no inline reply, which changes where the answer goes, never whether it
+   gets one. What is real is fixed in code; what is not goes into your response.
+5. `⚠ outdated` on a thread is GitHub's own verdict that the code moved since. `⚠ written before
+   the current head` on a review body or comment is a hint rather than a verdict, since nothing
+   computes that one. Either way, read the code as it stands before deciding: the point may
+   already be moot.
+6. Each thread arrives with the diff lines it is anchored to. That is where the comment points,
+   not necessarily where the problem is, so read the file itself before concluding.
+7. A `[bot]` tag is the author's GitHub account type, not a guess from the login. It only changes
+   how a reply is phrased when the point turns out not to be a real issue.
+8. If a point cannot be fetched because it lives somewhere `gh` does not reach, ask the user to
+   paste it, then treat it identically.
 
 ## For each comment
 

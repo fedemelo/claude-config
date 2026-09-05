@@ -23,18 +23,19 @@ gh pr view <pr> --json number,title,url,headRefOid,updatedAt
 gh api user --template '{{.login}}'
 ```
 
-2. Take every comment with its timestamp. Conversation comments, review summaries, and inline threads each hold points, and the one being asked about can be in any of them:
+2. Take every point with its timestamp. Conversation comments, review summaries and inline
+   threads each hold points, and the one being asked about can be in any of them, so all three
+   come back together:
 
 ```sh
-gh pr view <pr> --json comments --template '{{range .comments}}{{.createdAt}} {{.author.login}}: {{.body}}{{"\n"}}{{end}}'
-gh pr view <pr> --json reviews --template '{{range .reviews}}{{.submittedAt}} {{.author.login}} [{{.state}}]: {{.body}}{{"\n"}}{{end}}'
-gh api graphql -F owner='{owner}' -F name='{repo}' -F number=<n> -f query='
-query($owner:String!,$name:String!,$number:Int!){
-  repository(owner:$owner,name:$name){ pullRequest(number:$number){
-    reviewThreads(first:100){nodes{ isResolved path line
-      comments(first:50){nodes{ createdAt author{ login kind:__typename } body }}}}}}}' \
-  --template '{{range .data.repository.pullRequest.reviewThreads.nodes}}{{.path}}:{{.line}} resolved={{.isResolved}}{{"\n"}}{{range .comments.nodes}}  {{.createdAt}} {{.author.login}} [{{.author.kind}}]: {{.body}}{{"\n"}}{{end}}{{"\n"}}{{end}}'
+git review-feedback <pr> --all
 ```
+
+`--all` because the comment being asked about may sit in a thread somebody already resolved.
+Every point carries an id (`R1`, `T1`, `C1`), which is how to name the one you settled on. If
+`git-review-feedback` is not installed, a hook blocks it and says so; report that rather than
+rebuilding it out of raw `gh` calls, which would risk answering about the wrong comment because
+the right one was never fetched.
 
 3. Take the commits, so a comment written before the last push can be recognised as already overtaken:
 

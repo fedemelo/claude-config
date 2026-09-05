@@ -31,12 +31,18 @@ git fetch origin pull/<n>/head        # <n>: the number from the metadata above
 git show FETCH_HEAD:<path>
 ```
 
-3. Read every existing comment, from humans and from bots or other AI tools, so you never repeat a point another reviewer already made. Both commands render through `--template`, which keeps the output to the comments themselves; `--comments` and the raw REST endpoint each return several times the volume for the same content, most of it identifiers and URLs.
+3. Read every point another reviewer already made, human or bot, so you never repeat one:
 
 ```sh
-gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}: {{.body}}{{"\n"}}{{end}}'
-gh api repos/{owner}/{repo}/pulls/<n>/comments --template '{{range .}}{{.user.login}} {{.path}}:{{.line}}{{"\n"}}{{.diff_hunk}}{{"\n"}}{{.body}}{{"\n\n"}}{{end}}'
+git review-feedback <pr> --all
 ```
+
+`--all` because a resolved thread still records a point somebody made, and repeating it is
+exactly what this step is for. The output covers all three places feedback lives: inline threads,
+the body of every submitted review, and conversation comments. A review body is the one most
+easily missed, since nothing about it looks like a comment. If `git-review-feedback` is not
+installed, a hook blocks it and says so; report that rather than rebuilding it out of raw `gh`
+calls, which would leave you repeating a point already made somewhere you did not look.
 
 ## Does it fix the ticket? (only when ticket context is provided)
 
