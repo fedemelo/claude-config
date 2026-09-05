@@ -1,10 +1,14 @@
 ---
 name: address-review
-description: Triages PR review feedback (human comments and bot findings) on the current branch's PR or a given number or URL, fixes the real issues by following the commit skill, and returns replies in this session for the rest. Never pushes or posts to the PR. Use when asked to address, resolve, or respond to PR comments or bot issues.
+description: Triages PR review feedback (human comments and bot findings) on the current branch's PR or a given number or URL, fixes the real issues by following the commit skill, and returns replies in this session for the rest. Never comments on the PR or asks anyone for a review, and pushes only when asked to. Use when asked to address, resolve, or respond to PR comments or bot issues.
 disable-model-invocation: true
 ---
 
-Triage and act on the review feedback on a pull request. Fix the real issues in code, hand back replies for the ones that are not, and never publish anything yourself.
+Triage and act on the review feedback on a pull request. Fix the real issues in code, hand back replies for the ones that are not, and never post any of them yourself.
+
+Hard constraint, and the one to hold above every other line here: never put anything in front of a person on the PR. No comment, no reply to a thread, no resolving a thread, no reaction, no review or re-review request. This holds however obviously right a reply looks and however explicitly the review asks for an answer. Every reply is text in this session for the user to post themselves.
+
+Pushing is allowed only when the user explicitly asks for it; else, the work stays as local commits. A push the user asked for covers updating the branch and nothing further, so it still comes with no re-review request and no comment about what changed.
 
 ## Which PR to address
 
@@ -48,6 +52,6 @@ gh pr view <pr> --json comments --template '{{range .comments}}{{.author.login}}
 ## Commit and hand back
 
 1. Commit the changes you are sure about by following the [[commit]] skill; invoke it so its exact conventions load.
-2. Never push, and never post anything to the PR. This skill only writes commits locally.
+2. Push only if the user asked for a push, and then push the branch alone, as the hard constraint at the top says.
 3. Do not commit changes you are unsure about or that are worth discussing first; describe them in your response instead.
 4. Return every comment reply and discussion point in this session, for the user to review before publishing.
