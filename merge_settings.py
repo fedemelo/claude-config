@@ -4,6 +4,7 @@ import re
 import sys
 from pathlib import Path
 
+
 example_path, target_path = Path(sys.argv[1]), Path(sys.argv[2])
 example = json.loads(example_path.read_text())
 

@@ -11,6 +11,7 @@ import json
 import re
 import sys
 
+
 COMMIT_COMMAND_RE = re.compile(r"(^|;|&&|\|\||\|)\s*git\s+commit(\s|$)")
 
 # Installed as a plugin, the skill is namespaced as <plugin>:commit everywhere below.
@@ -31,14 +32,15 @@ def allow():
 
 
 def deny(reason):
-    print(json.dumps({
+    response = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": reason,
         },
         "systemMessage": reason,
-    }))
+    }
+    print(json.dumps(response))
     sys.exit(0)
 
 

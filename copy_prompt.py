@@ -8,8 +8,9 @@ import re
 import subprocess
 import sys
 from collections import deque
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
+
 
 SKILLS_DIR = Path(__file__).resolve().parent / "skills"
 
@@ -61,7 +62,7 @@ def title_of(skill):
     return TITLES[skill]
 
 
-@lru_cache(maxsize=None)
+@cache
 def prompt_of(skill):
     title_of(skill)
     return FRONTMATTER.sub("", (SKILLS_DIR / skill / "SKILL.md").read_text()).strip()
@@ -107,10 +108,7 @@ def omission_note(omitted):
             "Those documents were left out on purpose: each is a procedure of its own, followed "
             "as a separate step, and the task above can be completed without them."
         )
-        reach = (
-            "If your work does reach one of them, ask the user to provide it and wait for their "
-            "answer."
-        )
+        reach = "If your work does reach one of them, ask the user to provide it and wait for their answer."
     return block(
         OMISSION_TITLE,
         f"The text above refers to {named} in double brackets. {left_out}\n\n"

@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 
+
 GIT_LAND_RE = re.compile(r"(^|;|&&|\|\||\|)\s*git\s+land(\s|$)")
 GIT_TODO_RE = re.compile(r"(^|;|&&|\|\||\|)\s*git\s+todo(\s|$)")
 
@@ -23,14 +24,15 @@ def allow():
 
 
 def deny(reason):
-    print(json.dumps({
+    response = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": reason,
         },
         "systemMessage": reason,
-    }))
+    }
+    print(json.dumps(response))
     sys.exit(0)
 
 
