@@ -71,6 +71,7 @@ tests/enforce-commit-skill.test.sh
 tests/require-git-land-todo-tools.test.sh
 tests/copy-prompt.test.sh
 tests/validate-skills.test.sh
+tests/pretooluse.test.sh
 ```
 
 No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`; the hook cases only feed the hook a payload on stdin, plus a throwaway transcript where the hook reads one, and read its answer; and every validator case breaks one thing in a throwaway copy of the repo, so the copy it checks is never the one you are working in.
@@ -118,7 +119,7 @@ Each links to its full definition. The one-liner here is why it's useful and how
 ## Also included
 
 - **`CLAUDE.md`** — global rules applied to every project: commit discipline, self-documenting code, single responsibility, DRY.
-- **`hooks/`** — two `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` until the git-tools executables are installed. Both encode a condition no permission rule can express, which is why they are hooks: one reads the session's history, the other the filesystem.
+- **`hooks/`** — two `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` until the git-tools executables are installed. Both encode a condition no permission rule can express, which is why they are hooks: one reads the session's history, the other the filesystem. Each is only its own decision: reading the payload and answering the harness lives once in `_pretooluse.py`, which they import as a sibling rather than each carrying a copy.
 - **`settings.json.example`** — merged into `~/.claude/settings.json` on install, adding the hooks above without disturbing settings of your own. It grants no pre-approved commands: in auto mode the classifier reviews what the rules do not settle, and an allow rule would take those commands out of that review.
 - **`scripts/validate_skills.py`** — fails CI when the packaging stops matching the skills. It holds both runtimes to one invocation policy, checks a skill's frontmatter names its own directory, checks every `[[reference]]` points at a skill that exists, and checks `copy_prompt.py` can title every skill, which otherwise only surfaces when `make <skill>` exits with an error. It parses YAML itself rather than pulling in PyYAML, so the repo and its tests stay dependency-free; the parser rejects duplicate keys and anything outside the small subset written here instead of guessing.
 - **`explicit-only-skills.txt`** — the four skills you have to start yourself, listed once for [both runtimes](#both-runtimes) so the policy is reviewed in one place rather than inferred from two frontmatter keys.
