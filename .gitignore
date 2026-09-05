@@ -1,0 +1,6 @@
+# Written into hooks/ the first time a hook imports its shared module, since Python caches
+# bytecode beside the source rather than in the directory the hook was invoked through.
+__pycache__/
+*.py[cod]
+
+.ruff_cache/
