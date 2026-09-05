@@ -1,19 +1,38 @@
 name: tests
 
+# Filtered by what cannot affect the run rather than by what can. Nearly every file here feeds
+# a suite or the validator, so an allowlist would quietly stop running them the first time a
+# top-level file is added and nobody remembers to list it.
 on:
   push:
     branches: [main]
+    paths-ignore: ['README.md']
   pull_request:
+    paths-ignore: ['README.md']
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  validate:
+    # Pure Python and platform-independent, unlike the suites below, so it runs on the cheap runner
+    # and reports separately instead of gating them.
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate skill packaging
+        run: python3 scripts/validate_skills.py
+
   tests:
     # macOS, not Linux: this config installs onto macOS, and the installer depends on platform
     # behaviour a Linux runner would not exercise, from `ln -sfn` on an existing directory
     # symlink to empty-array expansion under bash 3.2.
     runs-on: macos-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Globbed rather than listed, so a suite added later runs without editing this file.
       # Every suite is collected before failing, so one run reports all of them.
       - name: Run test suites
