@@ -3,7 +3,12 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-mkdir -p "$HOME/.claude/hooks" "$HOME/.claude/skills"
+hooks_dir="$HOME/.claude/hooks"
+# Claude Code reads ~/.claude/skills; Codex, Copilot and OpenCode read ~/.agents/skills. Each
+# skill is linked into both from the one directory in this repo, so there is still a single copy.
+skill_dirs=("$HOME/.claude/skills" "$HOME/.agents/skills")
+
+mkdir -p "$hooks_dir" "${skill_dirs[@]}"
 
 claude_md="$HOME/.claude/CLAUDE.md"
 # A regular file here holds global instructions written by hand, which the symlink below
@@ -22,29 +27,33 @@ ln -sf "$repo_dir/CLAUDE.md" "$claude_md"
 # links pointing back into this repo are touched: a skill symlinked in from somewhere else can
 # be temporarily unresolvable, and deleting it then would break an install this does not own.
 pruned=0
-for link in "$HOME/.claude/hooks"/* "$HOME/.claude/skills"/*; do
-  if [ -L "$link" ] && [ ! -e "$link" ]; then
-    case "$(readlink "$link")" in
-      "$repo_dir"/*)
-        echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
-        rm "$link"
-        pruned=$((pruned + 1))
-        ;;
-    esac
-  fi
+for dir in "$hooks_dir" "${skill_dirs[@]}"; do
+  for link in "$dir"/*; do
+    if [ -L "$link" ] && [ ! -e "$link" ]; then
+      case "$(readlink "$link")" in
+        "$repo_dir"/*)
+          echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
+          rm "$link"
+          pruned=$((pruned + 1))
+          ;;
+      esac
+    fi
+  done
 done
 
 for hook in "$repo_dir"/hooks/*.py; do
-  ln -sf "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+  ln -sf "$hook" "$hooks_dir/$(basename "$hook")"
 done
 
 # -sfn (not -sf): don't follow an existing dir symlink, or re-runs nest the link inside it
 for skill in "$repo_dir"/skills/*/; do
   skill="${skill%/}"
-  ln -sfn "$skill" "$HOME/.claude/skills/$(basename "$skill")"
+  for dir in "${skill_dirs[@]}"; do
+    ln -sfn "$skill" "$dir/$(basename "$skill")"
+  done
 done
 
-echo "Linked CLAUDE.md, hooks, and skills into ~/.claude"
+echo "Linked CLAUDE.md and hooks into ~/.claude, and skills into ~/.claude/skills and ~/.agents/skills"
 [ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
 
 python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json"

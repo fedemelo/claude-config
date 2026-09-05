@@ -37,6 +37,15 @@ check "settings.json created" "$(test -f "$h/.claude/settings.json" && echo yes)
 check "CLAUDE.md points at the repo" "$(readlink "$h/.claude/CLAUDE.md")" "$repo_root/CLAUDE.md"
 check "nothing reported as pruned" "$(echo "$out" | grep -c 'Pruned')" "0"
 
+echo "=== the same skills are linked for Codex, from the same directory ==="
+check "every repo skill is linked there too" "$(ls "$h/.agents/skills" | wc -l | tr -d ' ')" "$skill_count"
+check "both runtimes point at one directory in the repo" \
+  "$(readlink "$h/.agents/skills/commit")" "$(readlink "$h/.claude/skills/commit")"
+check "and that directory is this repo's" "$(readlink "$h/.agents/skills/commit")" "$repo_root/skills/commit"
+check "the Codex policy file travels with the link" \
+  "$(test -f "$h/.agents/skills/commit/agents/openai.yaml" && echo yes)" "yes"
+check "both directories are named in the report" "$(echo "$out" | grep -c '.agents/skills')" "1"
+
 echo "=== a CLAUDE.md you wrote yourself is kept ==="
 h="$(new_home)"; mkdir -p "$h/.claude"
 printf '# My rules\nAlways speak in haiku.\n' > "$h/.claude/CLAUDE.md"
@@ -56,12 +65,15 @@ check "no pointless backup is made" "$(ls "$h/.claude" | grep -c 'pre-claude-con
 echo "=== links to skills and hooks removed upstream are pruned ==="
 h="$(new_home)"; install_into "$h" >/dev/null
 ln -sfn "$repo_root/skills/removed-skill" "$h/.claude/skills/removed-skill"
+ln -sfn "$repo_root/skills/removed-skill" "$h/.agents/skills/removed-skill"
 ln -sfn "$repo_root/hooks/removed-hook.py" "$h/.claude/hooks/removed-hook.py"
 mkdir -p "$h/.claude/skills/my-own"; printf 'x\n' > "$h/.claude/skills/my-own/SKILL.md"
 out="$(install_into "$h")"
 check "the stale skill link is gone" "$(test -L "$h/.claude/skills/removed-skill" && echo present || echo gone)" "gone"
+check "the stale Codex link is gone too" \
+  "$(test -L "$h/.agents/skills/removed-skill" && echo present || echo gone)" "gone"
 check "the stale hook link is gone" "$(test -L "$h/.claude/hooks/removed-hook.py" && echo present || echo gone)" "gone"
-check "both prunes are reported" "$(echo "$out" | grep -c 'Pruned stale link')" "2"
+check "all three prunes are reported" "$(echo "$out" | grep -c 'Pruned stale link')" "3"
 check "a real skill directory of your own is kept" "$(test -f "$h/.claude/skills/my-own/SKILL.md" && echo yes)" "yes"
 check "the repo skills are still linked" "$(ls "$h/.claude/skills" | grep -vc my-own)" "$skill_count"
 
