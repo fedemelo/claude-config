@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """PreToolUse hook: require the `commit` skill to be invoked before `git commit`.
 
-Reads the PreToolUse hook JSON from stdin. If the Bash command being run is a
-`git commit`, checks this session's transcript for evidence that the `commit`
-skill was already invoked. If not found, blocks the command and tells the model
-to invoke the skill first.
+If the Bash command being run is a `git commit`, checks this session's transcript for evidence
+that the `commit` skill was already invoked. If not found, blocks the command and tells the
+model to invoke the skill first.
 """
 
-import json
 import re
-import sys
+
+from _pretooluse import guard_bash
 
 
 COMMIT_COMMAND_RE = re.compile(r"(^|;|&&|\|\||\|)\s*git\s+commit(\s|$)")
@@ -26,58 +25,27 @@ SKILL_INVOKED_RE = re.compile(
 )
 
 
-def allow():
-    print(json.dumps({}))
-    sys.exit(0)
-
-
-def deny(reason):
-    response = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        },
-        "systemMessage": reason,
-    }
-    print(json.dumps(response))
-    sys.exit(0)
-
-
-def main():
+def transcript_of(payload):
+    path = payload.get("transcript_path")
+    if not path:
+        return ""
     try:
-        data = json.load(sys.stdin)
-    except (json.JSONDecodeError, ValueError):
-        allow()
-        return
+        with open(path) as f:
+            return f.read()
+    except OSError:
+        return ""
 
-    if data.get("tool_name") != "Bash":
-        allow()
-        return
 
-    command = data.get("tool_input", {}).get("command", "")
+def veto(command, payload):
     if not COMMIT_COMMAND_RE.search(command):
-        allow()
-        return
-
-    transcript_path = data.get("transcript_path")
-    transcript_text = ""
-    if transcript_path:
-        try:
-            with open(transcript_path, "r") as f:
-                transcript_text = f.read()
-        except OSError:
-            transcript_text = ""
-
-    if SKILL_INVOKED_RE.search(transcript_text):
-        allow()
-        return
-
-    deny(
+        return None
+    if SKILL_INVOKED_RE.search(transcript_of(payload)):
+        return None
+    return (
         "Blocked: you must invoke the `commit` skill before running `git commit`. "
         "Invoke the commit skill now, follow its instructions, then retry the commit."
     )
 
 
 if __name__ == "__main__":
-    main()
+    guard_bash(veto)
