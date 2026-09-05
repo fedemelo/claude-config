@@ -85,8 +85,10 @@ Reasoning is for the user, who decides whether to post. It has to convince them 
 Comment is for the PR author, and the user posts it as written. Follow the [[plain-english]] standard in full, plus:
 
 1. Name at most one identifier beyond what is already visible on the commented line. Every other name belongs in the reasoning.
-2. Say what goes wrong, and what to do instead when that is not obvious. Never how the finding was reached.
-3. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
+2. Say what goes wrong, and what to do instead when that is not obvious. Leave out how the finding was reached; that is what the reasoning is for.
+3. Investigative work is the one exception: reading logs, querying the database, re-running the code, putting an image through a pipeline. Name it only when the argument carries no weight without it, because the finding rests on what that work turned up and the author cannot see it in the diff. Whenever the code alone makes the case, the work goes unmentioned.
+4. When it is named, the opinion stays in the first person and the work is attributed to Claude: state the conclusion as "I think ...", then say what you had Claude do and what it found. For example: "I think this drops the last batch. I had Claude re-run the import against the staging dump, and the final 12 rows never landed."
+5. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
 
 Comment on every detail, however minor, even when the verdict is APPROVE.
 
