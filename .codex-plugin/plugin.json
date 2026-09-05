@@ -1,0 +1,27 @@
+{
+  "name": "fedemelo",
+  "version": "0.1.0",
+  "description": "Opinionated personal skills for committing, reviewing, and shipping work.",
+  "author": {
+    "name": "Federico Melo Barrero"
+  },
+  "repository": "https://github.com/fedemelo/claude-config",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Fedemelo skills",
+    "shortDescription": "Personal workflows for committing, reviewing, and shipping",
+    "longDescription": "Opinionated personal skills for committing work in modular commits, reviewing pull requests without posting, and shipping changes as clean pull requests.",
+    "developerName": "Federico Melo Barrero",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use $fedemelo:local-review to review a pull request without posting to it",
+      "Use $fedemelo:open-pr to put the current changes up as a pull request",
+      "Use $fedemelo:daily-update to write the update you post to your team"
+    ]
+  }
+}

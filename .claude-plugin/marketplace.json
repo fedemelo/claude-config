@@ -1,0 +1,14 @@
+{
+  "name": "fedemelo-claude-config",
+  "description": "Opinionated personal skills for committing, reviewing, and shipping work.",
+  "owner": {
+    "name": "Federico Melo Barrero"
+  },
+  "plugins": [
+    {
+      "name": "fedemelo",
+      "description": "Opinionated personal skills for committing, reviewing, and shipping work.",
+      "source": "."
+    }
+  ]
+}
