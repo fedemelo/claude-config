@@ -39,6 +39,7 @@ NAMED_ONLY = {
     "local-review": "LOCAL REVIEW GUIDELINES",
     "open-pr": "OPEN PR GUIDELINES",
     "second-opinion": "SECOND OPINION GUIDELINES",
+    "sync": "SYNC GUIDELINES",
     "todo": "TODO GUIDELINES",
     "verify-replies": "VERIFY REPLIES GUIDELINES",
 }

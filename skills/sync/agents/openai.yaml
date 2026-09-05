@@ -1,0 +1,5 @@
+interface:
+  display_name: "Sync with base"
+  short_description: "Rebase a branch or stack onto its base and resolve conflicts"
+policy:
+  allow_implicit_invocation: false

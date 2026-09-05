@@ -1,8 +1,9 @@
 # Skills the model may not invoke on its own; you have to type the slash command.
 #
 # The default here is the opposite of the usual one: a skill is model-invocable unless it
-# is named below. These four are named because each mutates something outside the working
-# tree, so an invocation the user did not ask for costs more than a round trip.
+# is named below. These five are named because each mutates something outside the working
+# tree, so an invocation the user did not ask for costs more than a round trip. `sync`
+# force-pushes, so an unasked-for run can also rewrite a branch someone else is reading.
 #
 # `commit` is deliberately absent. Its PreToolUse hook blocks `git commit` itself, which is
 # strictly stronger than blocking the skill that wraps it, and making it explicit-only would
@@ -14,4 +15,5 @@
 address-review
 land
 open-pr
+sync
 todo
