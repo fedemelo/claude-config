@@ -1,0 +1,17 @@
+# Skills the model may not invoke on its own; you have to type the slash command.
+#
+# The default here is the opposite of the usual one: a skill is model-invocable unless it
+# is named below. These four are named because each mutates something outside the working
+# tree, so an invocation the user did not ask for costs more than a round trip.
+#
+# `commit` is deliberately absent. Its PreToolUse hook blocks `git commit` itself, which is
+# strictly stronger than blocking the skill that wraps it, and making it explicit-only would
+# stop open-pr and address-review from following it as a step.
+#
+# The validator holds this list, SKILL.md's `disable-model-invocation` and
+# agents/openai.yaml's `policy.allow_implicit_invocation` to the same answer, so a skill
+# cannot end up explicit-only in one runtime and automatic in the other.
+address-review
+land
+open-pr
+todo

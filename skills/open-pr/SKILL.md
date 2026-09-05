@@ -1,6 +1,7 @@
 ---
 name: open-pr
 description: "Puts up a clean PR for the current working changes: cuts a fresh branch off the latest default branch, commits only valid code changes, pushes, and opens a PR assigned to the user with a terse description. Use when asked to open, put up, raise, or submit a PR."
+disable-model-invocation: true
 ---
 
 Put up a clean PR for the changes already in the working tree. Do not write, refactor, clean up, or make opportunistic code changes; commit and open the PR with the existing changes exactly as they are.
