@@ -1,0 +1,5 @@
+interface:
+  display_name: "Review a pull request"
+  short_description: "Review a pull request and return the comments here"
+policy:
+  allow_implicit_invocation: true

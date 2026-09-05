@@ -1,0 +1,5 @@
+interface:
+  display_name: "Commit changes"
+  short_description: "Commit pending work as focused, modular commits"
+policy:
+  allow_implicit_invocation: true

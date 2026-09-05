@@ -1,0 +1,5 @@
+interface:
+  display_name: "File a todo"
+  short_description: "File a GitHub issue assigned to you"
+policy:
+  allow_implicit_invocation: false

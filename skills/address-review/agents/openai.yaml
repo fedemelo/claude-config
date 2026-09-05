@@ -1,0 +1,5 @@
+interface:
+  display_name: "Address review feedback"
+  short_description: "Fix the real issues in PR feedback and draft replies"
+policy:
+  allow_implicit_invocation: false

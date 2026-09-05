@@ -1,0 +1,5 @@
+interface:
+  display_name: "Land commits"
+  short_description: "Push commits as a disposable, auto-merged pull request"
+policy:
+  allow_implicit_invocation: false

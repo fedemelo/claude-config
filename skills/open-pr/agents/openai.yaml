@@ -1,0 +1,5 @@
+interface:
+  display_name: "Open a pull request"
+  short_description: "Branch, commit, push, and open a clean pull request"
+policy:
+  allow_implicit_invocation: false

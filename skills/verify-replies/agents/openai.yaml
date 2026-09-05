@@ -1,0 +1,5 @@
+interface:
+  display_name: "Verify replies"
+  short_description: "Audit posted pull request replies against the code"
+policy:
+  allow_implicit_invocation: true

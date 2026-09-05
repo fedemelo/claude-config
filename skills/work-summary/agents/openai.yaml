@@ -1,0 +1,5 @@
+interface:
+  display_name: "Summarize work"
+  short_description: "Recap your pull request activity in this repo"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Plain English standard"
+  short_description: "The standard for prose another person will read"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,5 @@
+interface:
+  display_name: "PR description standard"
+  short_description: "The standard for pull request descriptions"
+policy:
+  allow_implicit_invocation: true

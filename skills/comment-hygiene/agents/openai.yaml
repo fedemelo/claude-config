@@ -1,0 +1,5 @@
+interface:
+  display_name: "Clean up comments"
+  short_description: "Strip comments that only restate the code"
+policy:
+  allow_implicit_invocation: true
