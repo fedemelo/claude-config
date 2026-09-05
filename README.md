@@ -2,7 +2,7 @@
 
 > **New machine, or after any pull:** `git pull && ./install.sh` in [git-tools](https://github.com/fedemelo/git-tools) first, then the same here. Editing a skill takes effect immediately through the symlinks, but adding or removing one does not.
 
-Global Claude Code setup: opinionated skills, the instructions they follow, and the hooks that enforce them.
+Global setup for Claude Code and Codex: opinionated skills, the instructions they follow, and the hooks that enforce them.
 
 ## Why this repo
 
@@ -13,9 +13,9 @@ Global Claude Code setup: opinionated skills, the instructions they follow, and 
 
 How so?
 
-1. `./install.sh` wires every skill, hook, and `CLAUDE.md` into `~/.claude/`. No copying files around or per-machine fiddling.
-2. `./install.sh` symlinks the repo files into `~/.claude/` rather than copying them. Editing a skill here edits the live one Claude uses, so there is no second copy to drift or go stale.
-3. These are not restatements of Claude's built-ins. They encode specific conventions that actually save humans (not AI) time. See the [skills](#skills) section.
+1. `./install.sh` wires every skill, hook, and `CLAUDE.md` into place. No copying files around or per-machine fiddling.
+2. `./install.sh` symlinks the repo files rather than copying them. Editing a skill here edits the live one the agent uses, so there is no second copy to drift or go stale. A skill is also written once for [both runtimes](#both-runtimes) rather than once each.
+3. These are not restatements of what the agent already does. They encode specific conventions that actually save humans (not AI) time. See the [skills](#skills) section.
 4. Some skills drive fast `git` subcommands (from [git-tools](https://github.com/fedemelo/git-tools)) instead of long `gh` incantations, and `PreToolUse` hooks block the raw commands until the matching skill is loaded, so the conventions can't be silently skipped.
 
 ## Prerequisites
@@ -32,9 +32,36 @@ cd claude-config
 ./install.sh
 ```
 
-It symlinks `CLAUDE.md`, `hooks/`, and `skills/` into `~/.claude/`, then merges the `PreToolUse` hook entries into `~/.claude/settings.json` without disturbing your existing settings. A `CLAUDE.md` you wrote yourself is moved to `CLAUDE.md.pre-claude-config` rather than overwritten, and hook entries are matched by script, so a changed command updates in place instead of leaving the old one alongside it.
+It symlinks `CLAUDE.md` and `hooks/` into `~/.claude/`, links every skill into both `~/.claude/skills/` and `~/.agents/skills/`, then merges the `PreToolUse` hook entries into `~/.claude/settings.json` without disturbing your existing settings. A `CLAUDE.md` you wrote yourself is moved to `CLAUDE.md.pre-claude-config` rather than overwritten, and hook entries are matched by script, so a changed command updates in place instead of leaving the old one alongside it.
 
 **Re-run it after every pull.** Editing a skill takes effect immediately, since the installed paths are symlinks, but a skill *added* upstream has no link until you re-run, and one renamed or removed upstream leaves a link pointing nowhere. Re-running creates the first and prunes the second, reporting whatever it changed.
+
+## Both runtimes
+
+Claude Code reads `~/.claude/skills/`; Codex reads `~/.agents/skills/`, as do Copilot and OpenCode. Both get a link to the same directory in this repo, so a skill is written once and there is still only one copy of it.
+
+What differs between the runtimes is not the skill but who may start it. Claude reads `disable-model-invocation` from the `SKILL.md` frontmatter. Codex ignores that key entirely and reads `policy.allow_implicit_invocation` from a five-line `agents/openai.yaml` beside it, which Claude in turn ignores. So each skill states the same policy twice, once per runtime, and nothing has to be duplicated except those two lines:
+
+```
+skills/land/
+├── SKILL.md            # disable-model-invocation: true
+└── agents/openai.yaml  # policy.allow_implicit_invocation: false
+```
+
+Two files can disagree, so the [validator](#also-included) fails the build unless they say the same thing and say what `explicit-only-skills.txt` says.
+
+Most skills can be started by the agent on its own. These four cannot, and you have to type the command, because each changes something outside the working tree:
+
+| Skill | Claude Code | Codex |
+|---|---|---|
+| [address-review](skills/address-review/SKILL.md) | `/address-review` | `$address-review` |
+| [land](skills/land/SKILL.md) | `/land` | `$land` |
+| [open-pr](skills/open-pr/SKILL.md) | `/open-pr` | `$open-pr` |
+| [todo](skills/todo/SKILL.md) | `/todo` | `$todo` |
+
+`commit` is deliberately not among them. Its hook blocks `git commit` itself, which is stronger than blocking the skill that wraps it, and making it explicit-only would stop `open-pr` and `address-review` from following it as a step.
+
+The hooks and the `disallowed-tools` restrictions are Claude Code features with no Codex equivalent, so under Codex the read-only skills are held to their own wording rather than to the harness.
 
 ## Tests
 
@@ -43,13 +70,20 @@ tests/install.test.sh
 tests/enforce-commit-skill.test.sh
 tests/require-git-land-todo-tools.test.sh
 tests/copy-prompt.test.sh
+tests/validate-skills.test.sh
 ```
 
-No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`, and the hook cases only feed the hook a payload on stdin, plus a throwaway transcript where the hook reads one, and read its answer.
+No dependencies and no network. Every install case runs against a throwaway `HOME`, so the suite never touches your real `~/.claude`; the hook cases only feed the hook a payload on stdin, plus a throwaway transcript where the hook reads one, and read its answer; and every validator case breaks one thing in a throwaway copy of the repo, so the copy it checks is never the one you are working in.
 
-## Using a skill outside Claude Code
+The validator itself runs on its own, and is worth running after changing how a skill is packaged rather than waiting for CI:
 
-Some tools cannot load skills, and the only way to use one there is to paste it as a prompt. `make <skill>` puts it on the clipboard for you:
+```sh
+python3 scripts/validate_skills.py
+```
+
+## Using a skill somewhere that cannot load one
+
+Claude Code and Codex both load these skills. Other tools cannot, and the only way to use one there is to paste it as a prompt. `make <skill>` puts it on the clipboard for you:
 
 ```sh
 make local-review
@@ -86,3 +120,7 @@ Each links to its full definition. The one-liner here is why it's useful and how
 - **`CLAUDE.md`** — global rules applied to every project: commit discipline, self-documenting code, single responsibility, DRY.
 - **`hooks/`** — two `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` until the git-tools executables are installed. Both encode a condition no permission rule can express, which is why they are hooks: one reads the session's history, the other the filesystem.
 - **`settings.json.example`** — merged into `~/.claude/settings.json` on install, adding the hooks above without disturbing settings of your own. It grants no pre-approved commands: in auto mode the classifier reviews what the rules do not settle, and an allow rule would take those commands out of that review.
+- **`scripts/validate_skills.py`** — fails CI when the packaging stops matching the skills. It holds both runtimes to one invocation policy, checks a skill's frontmatter names its own directory, checks every `[[reference]]` points at a skill that exists, and checks `copy_prompt.py` can title every skill, which otherwise only surfaces when `make <skill>` exits with an error. It parses YAML itself rather than pulling in PyYAML, so the repo and its tests stay dependency-free; the parser rejects duplicate keys and anything outside the small subset written here instead of guessing.
+- **`explicit-only-skills.txt`** — the four skills you have to start yourself, listed once for [both runtimes](#both-runtimes) so the policy is reviewed in one place rather than inferred from two frontmatter keys.
+- **`.claude-plugin/`, `.codex-plugin/`, `.agents/plugins/`** — manifests that let someone else install this repo as a plugin in either runtime. They are not how it is installed here, and deliberately so: a plugin install copies the tree and pins it to a commit, so it goes stale until someone remembers to update it, which is the drift the symlinks exist to avoid. The validator keeps them truthful anyway, since metadata nothing exercises is metadata that rots.
+- **`ruff.toml`** — line length 120, `py312`, isort. CI checks formatting and lint on a pinned ruff.
