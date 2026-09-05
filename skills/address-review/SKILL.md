@@ -6,10 +6,9 @@ disable-model-invocation: true
 
 Triage and act on the review feedback on a pull request. Fix the real issues in code, hand back replies for the ones that are not, and never publish anything yourself.
 
-## Which PR to address (resolve this yourself, never ask)
+## Which PR to address
 
-1. If a PR link or number was given, address that PR only.
-2. Otherwise address the PR of the branch the repo is currently on. Do not ask the user which PR. Resolve it yourself: `gh pr view` with no argument targets the current branch's PR, and `git branch --show-current` gives the branch name. If the current branch has no PR at all, say so and stop.
+Resolve it with [[pr-target]].
 
 ## Get the comments
 

@@ -23,10 +23,10 @@ note() { render "$1" | sed -n '/^REFERENCED DOCUMENTS NOT INCLUDED$/,$p'; }
 skill_dirs() { (cd "$repo_root/skills" && printf '%s\n' */ | sed 's:/$::' | sort); }
 
 echo "=== a skill renders as titled blocks, followed by the standards it obeys ==="
-check "the titles are the skill and its two standards, in order of mention" \
+check "the titles are the skill and the three documents it obeys, in order of mention" \
   "$(titles local-review | tr '\n' '|')" \
-  "LOCAL REVIEW GUIDELINES|COMMENT HYGIENE STANDARD|PLAIN ENGLISH STANDARD|"
-check "each block is fenced with triple quotes" "$(render local-review | grep -c '^"""$')" "6"
+  "LOCAL REVIEW GUIDELINES|PR TARGET RULES|COMMENT HYGIENE STANDARD|PLAIN ENGLISH STANDARD|"
+check "each block is fenced with triple quotes" "$(render local-review | grep -c '^"""$')" "8"
 check "a title is followed by a blank line" \
   "$(render local-review | grep -A1 '^LOCAL REVIEW GUIDELINES$' | tail -1)" ""
 check "a skill referencing nothing renders alone" \
@@ -58,7 +58,7 @@ check "nothing is left out of a bundle that includes every reference" \
 echo "=== a procedure followed as its own step is named, not pasted ==="
 check "address-review does not drag the commit chain in" \
   "$(titles address-review | tr '\n' '|')" \
-  "ADDRESS REVIEW GUIDELINES|PLAIN ENGLISH STANDARD|COMMENT HYGIENE STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
+  "ADDRESS REVIEW GUIDELINES|PR TARGET RULES|PLAIN ENGLISH STANDARD|COMMENT HYGIENE STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
 check "a skill whose only reference is guidelines renders alone" \
   "$(titles todo | tr '\n' '|')" "TODO GUIDELINES|REFERENCED DOCUMENTS NOT INCLUDED|"
 check "nothing left out means no note" "$(titles local-review | grep -c 'NOT INCLUDED')" "0"

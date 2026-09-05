@@ -88,7 +88,7 @@ Claude Code and Codex both load these skills. Other tools cannot, and the only w
 
 ```sh
 make local-review
-# Copied to clipboard: local-review, comment-hygiene, plain-english
+# Copied to clipboard: local-review, pr-target, comment-hygiene, plain-english
 make list          # the skills you can copy
 ```
 
@@ -112,6 +112,7 @@ Each links to its full definition. The one-liner here is why it's useful and how
 - **[todo](skills/todo/SKILL.md)** — files a GitHub issue with `git todo`, auto-assigned to you with the right defaults, instead of recalling `gh issue create` flags.
 - **[work-summary](skills/work-summary/SKILL.md)** — recaps your own PR activity in the current repo from a cutoff date to now, split into still open, merged, and closed without merging. Each PR gets a line saying what it actually does, plus review and CI state for the open ones and the stated closing reason (never a guessed one) for the closed ones.
 - **[daily-update](skills/daily-update/SKILL.md)** — turns that same PR activity into the update you post to your team. Not a recap: it regroups the PRs into the two or three initiatives they belong to, drops the chores nobody gains from reading about, and hyperlinks a single word per PR inside the sentence. The rules for what belongs in such an update are external, so they are quoted in the skill rather than paraphrased, examples included.
+- **[pr-target](skills/pr-target/SKILL.md)** — the shared rule for which PR a task is about: the one you named, the branch you named, or else the branch you are on. Referenced by every skill that acts on a PR, so none of them asks you a question they can answer themselves, and the answer is the same one in all of them.
 - **[comment-hygiene](skills/comment-hygiene/SKILL.md)** — the shared rule for which comments are worth keeping (only what the code can't say itself). Used alone to strip noise, and referenced by the review skills and `CLAUDE.md`.
 - **[pr-description](skills/pr-description/SKILL.md)** — the shared standard for PR descriptions: at most two short paragraphs, no formatting, no fluff. Used by open-pr when writing one.
 - **[plain-english](skills/plain-english/SKILL.md)** — the shared standard for anything another person reads: B2-level English, technical terms allowed but metaphors and corporate fluff banned, no chains of function names, nothing that reads as AI-written. Referenced by local-review, address-review, and pr-description, so their output is postable as is instead of needing a rewrite first.

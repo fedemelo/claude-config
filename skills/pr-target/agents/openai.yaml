@@ -1,0 +1,5 @@
+interface:
+  display_name: "PR target rules"
+  short_description: "Which pull request a task is about"
+policy:
+  allow_implicit_invocation: true

@@ -8,15 +8,14 @@ Act as an expert staff engineer reviewing a pull request.
 
 Hard constraint: deliver the entire review in this session. This skill is strictly read-only: never modify code, commit, post to the PR, switch or check out branches, create a worktree, or stash. Everything below is achievable read-only.
 
-## Which PR to review (resolve this yourself, never ask)
+## Which PR to review
 
-1. If a PR number or URL was given, review exactly that PR.
-2. Otherwise review the current branch's PR: `gh pr view` with no argument targets it. There must be an open PR for the branch; if there is none, say so and stop. Do not review the local working tree (uncommitted or unpushed changes) as a fallback.
-3. If ticket or issue context was also provided (pasted text, a link, or details), apply the "Does it fix the ticket?" section. Otherwise review purely for correctness, style, efficiency, unnecessary code, and overall quality.
+1. Resolve it with [[pr-target]]. Do not review the local working tree (uncommitted or unpushed changes) as a fallback.
+2. If ticket or issue context was also provided (pasted text, a link, or details), apply the "Does it fix the ticket?" section. Otherwise review purely for correctness, style, efficiency, unnecessary code, and overall quality.
 
 ## Understand the system before concluding
 
-Gather full context before forming an opinion. Below, `<pr>` is the given number or URL (or empty for the current branch's PR); `<n>` is the PR number.
+Gather full context before forming an opinion.
 
 1. Read the diff, then only the metadata you need. The diff comes straight from `gh pr diff <pr>`; never fetch it through the PR's web URL. Scope the metadata with `--json` rather than pulling the full view:
 

@@ -13,14 +13,13 @@ Two things are out of scope, and both are easy to slip into:
 1. The writing. Judge content only. Never remark on the tone, phrasing, formatting, grammar, or length of a comment or reply.
 2. The rest of the PR. This is not a code review. A problem in the code is in scope only when a comment raised it or a reply made a claim about it. Never go hunting for unrelated bugs.
 
-## Which PR to audit (resolve this yourself, never ask)
+## Which PR to audit
 
-1. If a PR number or URL was given, audit exactly that PR.
-2. Otherwise audit the current branch's PR: `gh pr view` with no argument targets it. If the branch has no open PR, say so and stop.
+Resolve it with [[pr-target]].
 
 ## Gather the whole discussion
 
-Points hide in every corner of a PR, so read all four sources before judging any of them. Below, `<pr>` is the given number or URL (or empty for the current branch's PR); `<n>` is the PR number, from `gh pr view <pr> --json number --template '{{.number}}'`.
+Points hide in every corner of a PR, so read all four sources before judging any of them.
 
 1. Inline review threads, with every comment in each thread:
 

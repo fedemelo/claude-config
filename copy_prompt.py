@@ -27,6 +27,7 @@ INCLUDED = {
     "comment-hygiene": "COMMENT HYGIENE STANDARD",
     "plain-english": "PLAIN ENGLISH STANDARD",
     "pr-description": "PR DESCRIPTION STANDARD",
+    "pr-target": "PR TARGET RULES",
     "work-summary": "WORK SUMMARY GUIDELINES",
 }
 

@@ -8,16 +8,13 @@ Someone commented on a pull request and the user wants to know what you make of 
 
 Answering is the whole job. Never modify code, never commit, never post, reply, react, or resolve anything, and never draft a reply unless the user asks for one. Fixing the comment in code is a different task and is not this one.
 
-## Which PR (resolve this yourself, never ask)
+## Which PR
 
-1. If a PR number or URL was given, use exactly that PR.
-2. Otherwise use the current branch's PR: `gh pr view` with no argument targets it. If the branch has no open PR, say so and stop.
+Resolve it with [[pr-target]].
 
 ## Refresh first, every single time
 
 Never answer from memory. Read the PR again at the start of every invocation, even when you already read it earlier in this session and nothing seems to have changed. The comment in question is often minutes old, so the state you remember is the state before it existed. Answering from memory produces a confident opinion about something the reviewer never said, which is worse than not answering at all.
-
-Below, `<pr>` is the given number or URL (or empty for the current branch's PR); `<n>` is the PR number.
 
 1. Take the current state and the user's own login, which later steps need:
 
