@@ -1,6 +1,6 @@
 # claude-config
 
-> **New machine, or after any pull:** `git pull && ./install.sh` in [git-tools](https://github.com/fedemelo/git-tools) first, then the same here. Editing a skill takes effect immediately through the symlinks, but adding or removing one does not.
+> **New machine, or after any pull:** run `/wire-up`, and Claude does all of the below for you. By hand it is `git pull && ./install.sh` in [git-tools](https://github.com/fedemelo/git-tools) first, then the same here. Editing a skill takes effect immediately through the symlinks, but adding or removing one does not.
 
 Global setup for Claude Code and Codex: opinionated skills, the instructions they follow, and the hooks that enforce them.
 
@@ -50,7 +50,7 @@ skills/land/
 
 Two files can disagree, so the [validator](#also-included) fails the build unless they say the same thing and say what `explicit-only-skills.txt` says.
 
-Most skills can be started by the agent on its own. These five cannot, and you have to type the command, because each changes something outside the working tree:
+Most skills can be started by the agent on its own. These six cannot, and you have to type the command, because each changes something outside the working tree:
 
 | Skill | Claude Code | Codex |
 |---|---|---|
@@ -59,6 +59,7 @@ Most skills can be started by the agent on its own. These five cannot, and you h
 | [open-pr](skills/open-pr/SKILL.md) | `/open-pr` | `$open-pr` |
 | [sync](skills/sync/SKILL.md) | `/sync` | `$sync` |
 | [todo](skills/todo/SKILL.md) | `/todo` | `$todo` |
+| [wire-up](skills/wire-up/SKILL.md) | `/wire-up` | `$wire-up` |
 
 `commit` is deliberately not among them. Its hook blocks `git commit` itself, which is stronger than blocking the skill that wraps it, and making it explicit-only would stop `open-pr` and `address-review` from following it as a step.
 
@@ -112,6 +113,7 @@ Each links to its full definition. The one-liner here is why it's useful and how
 - **[sync](skills/sync/SKILL.md)** — brings a branch up to date with its base and resolves the conflicts so the base's new behavior and the branch's own change both survive, instead of taking one side to make the rebase pass. Treats a stack as one unit: rebasing the bottom branch rebases and force-pushes everything above it, unless one of those PRs already has reviewers, in which case it does nothing and tells you. Stops and asks whenever a conflict turns into a design decision.
 - **[land](skills/land/SKILL.md)** — ships committed work with a single `git land` instead of a manual `gh pr create`/`merge` dance. Wraps the commits in a disposable, auto-merged PR so solo work lands with a paper trail and no ceremony, and can split a stack into several PRs (`--until`) or one PR per commit (`--each`).
 - **[todo](skills/todo/SKILL.md)** — files a GitHub issue with `git todo`, auto-assigned to you with the right defaults, instead of recalling `gh issue create` flags.
+- **[wire-up](skills/wire-up/SKILL.md)** — gets this machine's whole setup current in one command: finds both repos (cloning git-tools if it is missing), pulls each with `--ff-only` so it never decides a merge for you, runs their own installers rather than re-doing the symlinks by hand, and then checks the four things the installers deliberately leave to a human — `~/.local/bin` on `PATH`, `user.email`, `gh` auth, and every skill linked into both runtimes.
 - **[work-summary](skills/work-summary/SKILL.md)** — recaps your own PR activity in the current repo from a cutoff date to now, split into still open, merged, and closed without merging. Each PR gets a line saying what it actually does, plus review and CI state for the open ones and the stated closing reason (never a guessed one) for the closed ones.
 - **[daily-update](skills/daily-update/SKILL.md)** — turns that same PR activity into the update you post to your team. Not a recap: it regroups the PRs into the two or three initiatives they belong to, drops the chores nobody gains from reading about, and hyperlinks a single word per PR inside the sentence. The rules for what belongs in such an update are external, so they are quoted in the skill rather than paraphrased, examples included.
 - **[pr-target](skills/pr-target/SKILL.md)** — the shared rule for which PR a task is about: the one you named, the branch you named, or else the branch you are on. Referenced by every skill that acts on a PR, so none of them asks you a question they can answer themselves, and the answer is the same one in all of them.
@@ -125,6 +127,6 @@ Each links to its full definition. The one-liner here is why it's useful and how
 - **`hooks/`** — two `PreToolUse` hooks. One blocks `git commit` until the commit skill has been invoked this session; the other blocks `git land` / `git todo` / `git review-feedback` until the git-tools executables are installed, so a skill that names one of them cannot quietly fall back to hand-rolled `gh` calls that read less than the tool does. Both encode a condition no permission rule can express, which is why they are hooks: one reads the session's history, the other the filesystem. Each is only its own decision: reading the payload and answering the harness lives once in `_pretooluse.py`, which they import as a sibling rather than each carrying a copy.
 - **`settings.json.example`** — merged into `~/.claude/settings.json` on install, adding the hooks above without disturbing settings of your own. It grants no pre-approved commands: in auto mode the classifier reviews what the rules do not settle, and an allow rule would take those commands out of that review.
 - **`scripts/validate_skills.py`** — fails CI when the packaging stops matching the skills. It holds both runtimes to one invocation policy, checks a skill's frontmatter names its own directory, checks every `[[reference]]` points at a skill that exists, and checks `copy_prompt.py` can title every skill, which otherwise only surfaces when `make <skill>` exits with an error. It parses YAML itself rather than pulling in PyYAML, so the repo and its tests stay dependency-free; the parser rejects duplicate keys and anything outside the small subset written here instead of guessing.
-- **`explicit-only-skills.txt`** — the five skills you have to start yourself, listed once for [both runtimes](#both-runtimes) so the policy is reviewed in one place rather than inferred from two frontmatter keys.
+- **`explicit-only-skills.txt`** — the six skills you have to start yourself, listed once for [both runtimes](#both-runtimes) so the policy is reviewed in one place rather than inferred from two frontmatter keys.
 - **`.claude-plugin/`, `.codex-plugin/`, `.agents/plugins/`** — manifests that let someone else install this repo as a plugin in either runtime. They are not how it is installed here, and deliberately so: a plugin install copies the tree and pins it to a commit, so it goes stale until someone remembers to update it, which is the drift the symlinks exist to avoid. The validator keeps them truthful anyway, since metadata nothing exercises is metadata that rots.
 - **`ruff.toml`** — line length 120, `py312`, isort. CI checks formatting and lint on a pinned ruff.

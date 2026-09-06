@@ -1,0 +1,39 @@
+---
+name: wire-up
+description: Wires this machine's Claude and Codex setup up to date in one go: makes sure claude-config and git-tools are both cloned, pulls them, runs their installers, and checks the pieces the installers leave to you. Use when asked to wire up, update, or set up the local setup, the skills, the hooks, or the git tools on this machine.
+disable-model-invocation: true
+---
+
+Bring this machine's setup up to date: the skills, the hooks, `CLAUDE.md`, the settings entries, and the `git` subcommands the skills drive.
+
+Two repos hold all of it, and each installs itself. Your job is to find them, pull them, run their installers, and check the few things the installers deliberately leave to a human. Never wire anything by hand: the links, `~/.claude/settings.json` and `core.hooksPath` belong to the installers, which are idempotent and verify their own work, so a second copy of that logic here would drift from the one that runs everywhere else.
+
+## Find the repos
+
+- **claude-config** — `dirname "$(readlink ~/.claude/CLAUDE.md)"`. If that link is missing, the repo is the one this skill was loaded from.
+- **git-tools** — `dirname "$(dirname "$(readlink "$(command -v git-land)")")"`, else `~/git-tools`. If it is nowhere, clone `https://github.com/fedemelo/git-tools` beside claude-config: without it the `land`, `todo` and PR-review skills are inert, and a hook blocks their commands.
+
+## Update each
+
+git-tools first, then claude-config, because the skills over there call flags that only a current `git-land` has.
+
+```sh
+git -C <repo> pull --ff-only && <repo>/install.sh
+```
+
+`--ff-only` on purpose: a dirty tree, a branch that has diverged, or local commits mean someone was working in that repo, and a merge or rebase to get the pull through is a decision that is not yours. Stop, name the repo and what you found, and leave it untouched.
+
+If an installer exits non-zero, report its output as it stands and stop. Both fail loudly at the one thing they cannot verify silently — a `commit-msg` hook that is not stripping trailers, a `settings.json` that no longer parses or names a hook that is not installed — and working around that leaves a setup that looks installed and is not.
+
+## Check what the installers leave out
+
+Each of these fails at first use rather than at install time, so check all four and report them together:
+
+1. `~/.local/bin` is on `PATH`, via `command -v git-land git-todo git-review-feedback`. If the files exist but the commands do not resolve, give the user the line to add to their shell rc and ask before editing it yourself.
+2. `git config --global user.email` is set. A fresh machine has none and every commit fails. Point at git-tools' `gitconfig.example` and let the user fill in their name, email and signing key. Never guess any of the three.
+3. `gh auth status` succeeds. Almost every skill drives `gh`.
+4. Every skill in `<claude-config>/skills/` is linked in both `~/.claude/skills/` and `~/.agents/skills/`. A skill added upstream only appears once the installer has run, which is the whole reason this skill exists: editing a skill takes effect immediately through the symlinks, adding or removing one does not.
+
+## Report
+
+Say what each repo pulled or that it was already current, what the installers changed — new links, pruned links, settings merged — and, last, whatever the user still has to do themselves. If nothing changed and all four checks pass, say that in one line.

@@ -42,6 +42,7 @@ NAMED_ONLY = {
     "sync": "SYNC GUIDELINES",
     "todo": "TODO GUIDELINES",
     "verify-replies": "VERIFY REPLIES GUIDELINES",
+    "wire-up": "WIRE UP GUIDELINES",
 }
 
 TITLES = {**INCLUDED, **NAMED_ONLY}

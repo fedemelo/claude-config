@@ -1,0 +1,5 @@
+interface:
+  display_name: "Wire up this machine"
+  short_description: "Pull both config repos and wire their skills, hooks and tools into place"
+policy:
+  allow_implicit_invocation: false
