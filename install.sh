@@ -27,12 +27,14 @@ ln -sf "$repo_dir/CLAUDE.md" "$claude_md"
 # links pointing back into this repo are touched: a skill symlinked in from somewhere else can
 # be temporarily unresolvable, and deleting it then would break an install this does not own.
 pruned=0
+pruned_hooks=()
 for dir in "$hooks_dir" "${skill_dirs[@]}"; do
   for link in "$dir"/*; do
     if [ -L "$link" ] && [ ! -e "$link" ]; then
       case "$(readlink "$link")" in
         "$repo_dir"/*)
           echo "Pruned stale link $(basename "$link") -> $(readlink "$link")"
+          [ "$dir" = "$hooks_dir" ] && pruned_hooks+=("$(basename "$link")")
           rm "$link"
           pruned=$((pruned + 1))
           ;;
@@ -56,7 +58,7 @@ done
 echo "Linked CLAUDE.md and hooks into ~/.claude, and skills into ~/.claude/skills and ~/.agents/skills"
 [ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
 
-python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json"
+python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json" "${pruned_hooks[@]+"${pruned_hooks[@]}"}"
 
 # The merge rewrites settings.json in place, and hooks name their script by path, so a file
 # Claude cannot parse or a hook pointing at a script that is not installed both fail silently

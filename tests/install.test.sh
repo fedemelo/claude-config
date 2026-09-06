@@ -114,6 +114,23 @@ out="$(install_into "$h")"
 check "the duplicate is removed" "$(echo "$out" | grep -c 'Removed duplicate')" "1"
 check "one entry remains" "$(commands_in "$h" | grep -c 'enforce-commit-skill')" "1"
 
+echo "=== a hook renamed upstream is pruned, not left as a stale duplicate ==="
+h="$(new_home)"; install_into "$h" >/dev/null
+ln -sfn "$repo_root/hooks/renamed-away.py" "$h/.claude/hooks/renamed-away.py"
+python3 - "$h/.claude/settings.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+settings = json.load(open(path))
+settings["hooks"]["PreToolUse"][0]["hooks"].append(
+    {"type": "command", "command": "python3 $HOME/.claude/hooks/renamed-away.py"})
+json.dump(settings, open(path, "w"), indent=2)
+PY
+out="$(install_into "$h")"
+check "the dangling symlink prune is reported" "$(echo "$out" | grep -c 'Pruned stale link renamed-away.py')" "1"
+check "the settings.json entry is pruned too" "$(echo "$out" | grep -c 'Pruned stale hook.*renamed-away')" "1"
+check "the old name is gone from settings.json" "$(commands_in "$h" | grep -c 'renamed-away')" "0"
+check "the current hook is still present" "$(commands_in "$h" | grep -c 'enforce-commit-skill')" "1"
+
 echo "=== settings of your own are left alone ==="
 h="$(new_home)"; install_into "$h" >/dev/null
 python3 - "$h/.claude/settings.json" <<'PY'

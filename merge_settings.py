@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 example_path, target_path = Path(sys.argv[1]), Path(sys.argv[2])
+pruned_hooks = set(sys.argv[3:])
 example = json.loads(example_path.read_text())
 
 if not target_path.exists():
@@ -53,6 +54,15 @@ for matcher_group in example["hooks"]["PreToolUse"]:
         else:
             print(f"Updated hook for matcher '{matcher}': {existing[0]['command']} -> {hook['command']}")
             existing[0]["command"] = hook["command"]
+
+    # install.sh already confirmed these were our own hook symlinks pointing at a script that no
+    # longer exists (renamed or removed upstream), so the settings.json entry naming them is
+    # equally stale. A hook install.sh did not just prune is left alone even if unrecognized: it
+    # might be a typo the user should see fail, not have us guess and delete it.
+    for hook in list(hooks):
+        if hook_identity(hook["command"]) in pruned_hooks:
+            hooks.remove(hook)
+            print(f"Pruned stale hook for matcher '{matcher}': {hook['command']}")
 
 target_path.write_text(json.dumps(target, indent=2) + "\n")
 print(f"Merged into {target_path} (effortLevel/tui/attribution left untouched — set those yourself if wanted)")
