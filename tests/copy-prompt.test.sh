@@ -58,7 +58,7 @@ check "nothing is left out of a bundle that includes every reference" \
 echo "=== a procedure followed as its own step is named, not pasted ==="
 check "address-review does not drag the commit chain in" \
   "$(titles address-review | tr '\n' '|')" \
-  "ADDRESS REVIEW GUIDELINES|PR TARGET RULES|PLAIN ENGLISH STANDARD|COMMENT HYGIENE STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
+  "ADDRESS REVIEW GUIDELINES|PLAIN ENGLISH STANDARD|PR TARGET RULES|COMMENT HYGIENE STANDARD|REFERENCED DOCUMENTS NOT INCLUDED|"
 check "a skill whose only reference is guidelines renders alone" \
   "$(titles todo | tr '\n' '|')" "TODO GUIDELINES|REFERENCED DOCUMENTS NOT INCLUDED|"
 check "nothing left out means no note" "$(titles local-review | grep -c 'NOT INCLUDED')" "0"

@@ -10,6 +10,8 @@ Hard constraint, and the one to hold above every other line here: never put anyt
 
 Whoever invoked this skill is the caller: the user in this session, or another skill's agent running a review cycle. Everything you would otherwise say to the user goes to the caller instead, in your response: the replies, any question you are stuck on, and whatever you chose not to commit. You address nobody else, and never the PR.
 
+Every reply here is read by a person on the PR, and the caller posts it as written, so load the [[plain-english]] standard before writing any of them and follow it in full. That covers each reply for a point that is not real, each reply carried forward from an earlier pass, and every blocking question, since the caller pastes those onto the PR too. It governs prose only, never code, identifiers or quoted text.
+
 Pushing is allowed only when the caller explicitly asks for it; else, the work stays as local commits. A push the caller asked for covers updating the branch and nothing further, so it still comes with no re-review request and no comment about what changed.
 
 ## Which PR to address
@@ -81,7 +83,7 @@ caller never asked you to act on.
 
 1. Understand it fully. Read what it actually means. If it is unclear, disambiguate by reading the whole PR, the other comments and discussions, and above all the code. If you still cannot be certain you understand it, do not guess. Stop, and put the question in your response as a blocking question that names the point's id, saying nothing else about that point.
 2. Decide whether it is a real issue that truly affects the code.
-3. If it is not real, write a very succinct reply explaining why, and return it in your response without posting it. The caller uses it to reply on the PR so other developers understand why nothing changed. Write it to the [[plain-english]] standard, phrased for the audience: a peer reply for a human reviewer, or a rebuttal for a bot finding that explains why it is irrelevant, already handled, or wrong.
+3. If it is not real, write a very succinct reply explaining why, and return it in your response without posting it. The caller uses it to reply on the PR so other developers understand why nothing changed. Write it to the [[plain-english]] standard loaded above, phrased for the audience: a peer reply for a human reviewer, or a rebuttal for a bot finding that explains why it is irrelevant, already handled, or wrong.
 4. If it is real, fix it. Do not introduce new issues or undesired effects; beware race conditions and any change to the original logic or intent of the code. Apply the [[comment-hygiene]] standard to comments in the code you touch: add none that merely restate the code, and drop existing ones that fail it.
 5. Review the fix again in context. Confirm it fully addresses the issue, does not alter intended behavior, and causes no problems elsewhere. It is easy to lose the overall workflow while focused on one detail, so check that the fix broke nothing else.
 6. Look for similar issues. If the same class of problem exists elsewhere, run this same procedure on each until everything is handled.
