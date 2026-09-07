@@ -1,10 +1,11 @@
 # Skills the model may not invoke on its own; you have to type the slash command.
 #
 # The default here is the opposite of the usual one: a skill is model-invocable unless it
-# is named below. These six are named because each mutates something outside the working
+# is named below. These seven are named because each mutates something outside the working
 # tree, so an invocation the user did not ask for costs more than a round trip. `sync`
 # force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
-# and `wire-up` pulls two repos and rewires the whole machine's setup.
+# `wire-up` pulls two repos and rewires the whole machine's setup, and `address-review-loop` spends
+# rounds of agents committing and pushing to a branch until a review approves it.
 #
 # A skill listed here carries no "Use when ..." clause in its description. The model never
 # sees the description of a skill it may not invoke, so the clause would name triggers for a
@@ -19,6 +20,7 @@
 # agents/openai.yaml's `policy.allow_implicit_invocation` to the same answer, so a skill
 # cannot end up explicit-only in one runtime and automatic in the other.
 address-review
+address-review-loop
 land
 open-pr
 sync

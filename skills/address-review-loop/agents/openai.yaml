@@ -1,0 +1,5 @@
+interface:
+  display_name: "Review and address in rounds"
+  short_description: "Run a PR through review-and-address rounds, each review by a fresh agent"
+policy:
+  allow_implicit_invocation: false

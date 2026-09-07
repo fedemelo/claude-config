@@ -33,6 +33,7 @@ INCLUDED = {
 
 NAMED_ONLY = {
     "address-review": "ADDRESS REVIEW GUIDELINES",
+    "address-review-loop": "ADDRESS REVIEW LOOP GUIDELINES",
     "commit": "COMMIT GUIDELINES",
     "daily-update": "DAILY UPDATE GUIDELINES",
     "land": "LAND GUIDELINES",
