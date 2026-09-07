@@ -1,5 +1,5 @@
 interface:
-  display_name: "Wire up this machine"
-  short_description: "Pull both config repos and wire their skills, hooks and tools into place"
+  display_name: "Wire up this environment"
+  short_description: "Follow the setup procedure for this kind of environment, owned machine or devspaces pod"
 policy:
   allow_implicit_invocation: false
