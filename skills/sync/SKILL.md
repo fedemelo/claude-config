@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Brings a branch, or the whole stack it sits in, up to date with its base branch by rebasing and resolving conflicts so both sides keep working. Stops and asks whenever a conflict needs a real decision, or whenever a branch it would have to force-push already has reviewers. Use when asked to sync, rebase, or bring a branch or PR up to date with master.
+description: Brings a branch, or the whole stack it sits in, up to date with its base branch by rebasing and resolving conflicts so both sides keep working. Stops and asks whenever a conflict needs a real decision, or whenever a branch it would have to force-push already has reviewers.
 disable-model-invocation: true
 ---
 

@@ -6,6 +6,11 @@
 # force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
 # and `wire-up` pulls two repos and rewires the whole machine's setup.
 #
+# A skill listed here carries no "Use when ..." clause in its description. The model never
+# sees the description of a skill it may not invoke, so the clause would name triggers for a
+# reader that cannot act on them. What stays is what the skill does, which is what you read
+# in the slash menu when you pick it yourself.
+#
 # `commit` is deliberately absent. Its PreToolUse hook blocks `git commit` itself, which is
 # strictly stronger than blocking the skill that wraps it, and making it explicit-only would
 # stop open-pr and address-review from following it as a step.

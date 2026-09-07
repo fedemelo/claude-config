@@ -1,6 +1,6 @@
 ---
 name: wire-up
-description: Wires this machine's Claude and Codex setup up to date in one go: makes sure claude-config and git-tools are both cloned, pulls them, runs their installers, and checks the pieces the installers leave to you. Use when asked to wire up, update, or set up the local setup, the skills, the hooks, or the git tools on this machine.
+description: Wires this machine's Claude and Codex setup up to date in one go: makes sure claude-config and git-tools are both cloned, pulls them, runs their installers, and checks the pieces the installers leave to you.
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: address-review
-description: Triages PR review feedback (human comments and bot findings) on the current branch's PR, on a given number or URL, or in a review handed over as text, fixes the real issues by following the commit skill, and returns replies in this session for the rest. Never comments on the PR or asks anyone for a review, and pushes only when asked to. Use when asked to address, resolve, or respond to PR comments or bot issues.
+description: Triages PR review feedback (human comments and bot findings) on the current branch's PR, on a given number or URL, or in a review handed over as text, fixes the real issues by following the commit skill, and returns replies in this session for the rest. Never comments on the PR or asks anyone for a review, and pushes only when asked to.
 disable-model-invocation: true
 ---
 

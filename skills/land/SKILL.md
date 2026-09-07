@@ -1,10 +1,10 @@
 ---
 name: land
-description: Pushes local commits to the tracked branch with the git-land tool, which wraps them in a disposable, auto-merged PR. Use when asked to land, ship, or merge local commits without a manual PR.
+description: Pushes local commits to the tracked branch with the git-land tool, which wraps them in a disposable, auto-merged PR.
 disable-model-invocation: true
 ---
 
-When told to land, ship, or merge commits, run `git land` from the current repo. Do not write code, open a PR by hand, or call `gh pr create` or `gh pr merge` yourself, since `git land` already does all of that. If `git-land` is not installed, a hook blocks the command and says so; report that to the user instead of replicating the behavior with raw `gh` or `git` commands.
+Run `git land` from the current repo. Do not write code, open a PR by hand, or call `gh pr create` or `gh pr merge` yourself, since `git land` already does all of that. If `git-land` is not installed, a hook blocks the command and says so; report that to the user instead of replicating the behavior with raw `gh` or `git` commands.
 
 This is for solo work that merges without review, on a branch that already tracks an upstream, normally the default branch. When the change should be reviewed before merging, or the current branch has no upstream at all, `git land` is the wrong tool and refuses to run; put up a real PR with the [[open-pr]] skill instead.
 
