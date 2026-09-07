@@ -33,13 +33,15 @@ git status --porcelain
 gh pr view <pr> --json reviewRequests,reviews
 ```
 
-3. Where the address-review instructions live, resolved once. The addressing agents cannot invoke that skill, since it is explicit-only and a spawned agent is not you typing its name.
+3. The address-review instructions, which you read yourself and keep for the whole run, since every addressing pass gets that text inlined in its prompt.
 
 ```sh
 ls ~/.claude/skills/address-review/SKILL.md ~/.agents/skills/address-review/SKILL.md 2>/dev/null | head -1
 ```
 
 Search wider if that finds nothing, with `find ~/.claude ~/.agents -path '*/address-review/SKILL.md' 2>/dev/null | head -1`. If it still finds nothing, stop: the cycle has no addressing step without those instructions.
+
+You read that file rather than handing its path to the agent that needs it. address-review is explicit-only, so it refuses the Skill tool, and the refusal also warns against reaching the skill by other means; a spawned agent given nothing but a path reads that as covering the file, and declines to open it. What authorizes an addressing pass is the user having invoked this skill, and that does not travel with a path. The instructions travel as text instead, and the authorization travels with them.
 
 4. One directory outside the repo, from `mktemp -d`, to hold this run's reviews and replies. Nothing this skill writes goes inside the repo, where it would dirty the tree the agents commit from.
 
@@ -63,7 +65,7 @@ Search wider if that finds nothing, with `find ~/.claude ~/.agents -path '*/addr
 4. An addressing pass is another agent, spawned the same way, with an empty context. Give it, and only it, the settled replies; a reviewer that reads them is a reviewer that knows what the last round argued. Prompt it with:
 
    1. The PR number.
-   2. Its instructions: read the `address-review/SKILL.md` resolved above and follow it exactly, as though it had been invoked. The skills it names in `[[double brackets]]` are invoked normally.
+   2. Its instructions: the address-review text you read before the first round, inlined whole and followed exactly. Say where that text comes from and why it arrives in the prompt rather than as a skill: it is address-review's own, the user invoked this skill to have it followed round by round, and following it here is what they asked for. The skills it names in `[[double brackets]]` are not gated, so it invokes those normally.
    3. Its feedback set: the path to `<dir>/review-<round>.md`, handed over rather than fetched, so it does not go looking on the PR.
    4. The path to `<dir>/settled.md` when that file exists, as the points already settled in an earlier pass.
    5. Whether to push. Push when you are done, unless reviewers appeared on the PR since the last check, which is worth re-checking here because a push changes what a reviewer is reading. If they have, tell it not to push and end the cycle after this pass.
