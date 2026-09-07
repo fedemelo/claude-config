@@ -54,13 +54,54 @@ check "its content survives in the backup" "$(grep -c haiku "$h/.claude/CLAUDE.m
 check "CLAUDE.md becomes the repo symlink" "$(readlink "$h/.claude/CLAUDE.md")" "$repo_root/CLAUDE.md"
 check "the move is reported" "$(echo "$out" | grep -c 'Moved aside')" "1"
 
-echo "=== a CLAUDE.md symlinked elsewhere is replaced, not backed up ==="
+# A symlink is somebody else's claim on the slot, and a managed workspace pointing it at team
+# policy is the case that matters: taking it over would swap out policy nobody asked to lose.
+echo "=== a CLAUDE.md symlinked elsewhere is left alone ==="
 h="$(new_home)"; mkdir -p "$h/.claude"; printf 'theirs\n' > "$h/other.md"
 ln -sf "$h/other.md" "$h/.claude/CLAUDE.md"
 out="$(install_into "$h")"
-check "the replacement is reported" "$(echo "$out" | grep -c 'Replaced a CLAUDE.md symlink')" "1"
+check "the slot still points where it did" "$(readlink "$h/.claude/CLAUDE.md")" "$h/other.md"
+check "leaving it is reported" "$(echo "$out" | grep -c 'Left CLAUDE.md alone')" "1"
 check "the file it pointed at is untouched" "$(cat "$h/other.md")" "theirs"
 check "no pointless backup is made" "$(ls "$h/.claude" | grep -c 'pre-claude-config')" "0"
+check "the rest of the install still ran" \
+  "$(ls "$h/.claude/skills" | wc -l | tr -d ' ')" "$skill_count"
+
+echo "=== Codex gets the same global instructions, by the same rule ==="
+h="$(new_home)"
+out="$(install_into "$h")"
+check "AGENTS.md points at the repo" "$(readlink "$h/.codex/AGENTS.md")" "$repo_root/CLAUDE.md"
+check "both runtimes read one file" \
+  "$(readlink "$h/.codex/AGENTS.md")" "$(readlink "$h/.claude/CLAUDE.md")"
+check "the Codex slot is named in the report" "$(echo "$out" | grep -c '.codex')" "1"
+
+h="$(new_home)"; mkdir -p "$h/.codex"
+printf '# My rules\nAlways speak in haiku.\n' > "$h/.codex/AGENTS.md"
+out="$(install_into "$h")"
+check "an AGENTS.md you wrote yourself survives in the backup" \
+  "$(grep -c haiku "$h/.codex/AGENTS.md.pre-claude-config")" "1"
+check "and the slot becomes the repo symlink" \
+  "$(readlink "$h/.codex/AGENTS.md")" "$repo_root/CLAUDE.md"
+
+# The devspaces case: the workspace points this slot at root-owned team policy and recreates
+# the link every boot, so claiming it would both lose policy and not survive a restart.
+h="$(new_home)"; mkdir -p "$h/.codex"; printf 'team policy\n' > "$h/managed.md"
+ln -sf "$h/managed.md" "$h/.codex/AGENTS.md"
+out="$(install_into "$h")"
+check "a managed AGENTS.md symlink is left alone" \
+  "$(readlink "$h/.codex/AGENTS.md")" "$h/managed.md"
+check "leaving it is reported" "$(echo "$out" | grep -c 'Left AGENTS.md alone')" "1"
+check "the policy it pointed at is untouched" "$(cat "$h/managed.md")" "team policy"
+check "Claude's own slot was still claimed" \
+  "$(readlink "$h/.claude/CLAUDE.md")" "$repo_root/CLAUDE.md"
+
+echo "=== re-running over this repo's own links changes nothing ==="
+h="$(new_home)"; install_into "$h" >/dev/null
+out="$(install_into "$h")"
+check "CLAUDE.md is not reported as foreign" "$(echo "$out" | grep -c 'Left CLAUDE.md alone')" "0"
+check "AGENTS.md is not reported as foreign" "$(echo "$out" | grep -c 'Left AGENTS.md alone')" "0"
+check "neither slot is backed up on a re-run" \
+  "$(ls "$h/.claude" "$h/.codex" | grep -c 'pre-claude-config')" "0"
 
 echo "=== links to skills and hooks removed upstream are pruned ==="
 h="$(new_home)"; install_into "$h" >/dev/null

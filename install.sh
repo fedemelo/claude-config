@@ -10,17 +10,35 @@ skill_dirs=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
 mkdir -p "$hooks_dir" "${skill_dirs[@]}"
 
-claude_md="$HOME/.claude/CLAUDE.md"
-# A regular file here holds global instructions written by hand, which the symlink below
-# would replace without a trace.
-if [ -f "$claude_md" ] && [ ! -L "$claude_md" ]; then
-  mv "$claude_md" "$claude_md.pre-claude-config"
-  echo "Moved aside your existing CLAUDE.md to CLAUDE.md.pre-claude-config"
-elif [ -L "$claude_md" ] && [ "$(readlink "$claude_md")" != "$repo_dir/CLAUDE.md" ]; then
-  echo "Replaced a CLAUDE.md symlink that pointed at $(readlink "$claude_md")"
-fi
+# Each runtime reads global instructions from its own path, and both get a link to this repo's
+# CLAUDE.md: Claude Code reads ~/.claude/CLAUDE.md, Codex ~/.codex/AGENTS.md.
+#
+# Same rule for both, and it never writes over something this repo does not own. A regular file
+# there holds instructions written by hand, so it is moved aside rather than replaced without a
+# trace. A symlink pointing anywhere else belongs to whoever made it: an environment that
+# provisions its own base instructions (a managed workspace pointing the slot at team policy)
+# owns that slot, and taking it over would swap out policy the user never asked to lose. Report
+# and skip, since a slot this repo declines to claim degrades nothing but its own reach.
+link_instructions() {
+  local slot="$1" label="$2"
 
-ln -sf "$repo_dir/CLAUDE.md" "$claude_md"
+  if [ -L "$slot" ]; then
+    local current; current="$(readlink "$slot")"
+    if [ "$current" != "$repo_dir/CLAUDE.md" ]; then
+      echo "Left $label alone: it is a symlink to $current, which this repo does not own"
+      return
+    fi
+  elif [ -e "$slot" ]; then
+    mv "$slot" "$slot.pre-claude-config"
+    echo "Moved aside your existing $label to $(basename "$slot").pre-claude-config"
+  fi
+
+  mkdir -p "$(dirname "$slot")"
+  ln -sf "$repo_dir/CLAUDE.md" "$slot"
+}
+
+link_instructions "$HOME/.claude/CLAUDE.md" "CLAUDE.md"
+link_instructions "$HOME/.codex/AGENTS.md" "AGENTS.md"
 
 # Links whose target no longer exists are skills and hooks renamed or removed upstream.
 # Nothing else prunes them, and a stale skill stays listed as one Claude cannot load. Only
@@ -55,7 +73,7 @@ for skill in "$repo_dir"/skills/*/; do
   done
 done
 
-echo "Linked CLAUDE.md and hooks into ~/.claude, and skills into ~/.claude/skills and ~/.agents/skills"
+echo "Linked hooks into ~/.claude, global instructions into ~/.claude and ~/.codex, and skills into ~/.claude/skills and ~/.agents/skills"
 [ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
 
 python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json" "${pruned_hooks[@]+"${pruned_hooks[@]}"}"
