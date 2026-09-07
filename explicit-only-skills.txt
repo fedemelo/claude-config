@@ -1,11 +1,12 @@
 # Skills the model may not invoke on its own; you have to type the slash command.
 #
 # The default here is the opposite of the usual one: a skill is model-invocable unless it
-# is named below. These seven are named because each mutates something outside the working
+# is named below. These eight are named because each mutates something outside the working
 # tree, so an invocation the user did not ask for costs more than a round trip. `sync`
 # force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
 # `wire-up` pulls two repos and rewires the whole machine's setup, and `address-review-loop` spends
-# rounds of agents committing and pushing to a branch until a review approves it.
+# rounds of agents committing and pushing to a branch until a review approves it, and
+# `review-queue` starts a session per PR waiting on your review.
 #
 # A skill listed here carries no "Use when ..." clause in its description. The model never
 # sees the description of a skill it may not invoke, so the clause would name triggers for a
@@ -23,6 +24,7 @@ address-review
 address-review-loop
 land
 open-pr
+review-queue
 sync
 todo
 wire-up

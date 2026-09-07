@@ -1,0 +1,5 @@
+interface:
+  display_name: "Queue up my reviews"
+  short_description: "List the PRs awaiting your review and start a session for each"
+policy:
+  allow_implicit_invocation: false
