@@ -2,6 +2,7 @@
 name: address-review
 description: Triages PR review feedback (human comments and bot findings) on the current branch's PR, on a given number or URL, or in a review handed over as text, fixes the real issues by following the commit skill, and returns replies in this session for the rest. Never comments on the PR or asks anyone for a review, and pushes only when asked to.
 disable-model-invocation: true
+audience: others
 ---
 
 Triage and act on the review feedback on a pull request. Fix the real issues in code, hand back replies for the ones that are not, and never post any of them yourself.

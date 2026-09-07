@@ -122,6 +122,70 @@ sed -i.bak 's/\[\[commit\]\]/[[commits]]/' "$d/skills/open-pr/SKILL.md"
 check "a dangling reference is caught" "$(reports "$d" "open-pr: [[commits]] does not name a skill")" "1"
 rm -rf "$d"
 
+echo "=== a skill whose reader is not the user has to name the prose standard ==="
+d=$(fixture)
+sed -i.bak 's/\[\[plain-english\]\]/the prose standard/g' "$d/skills/address-review/SKILL.md"
+check "a skill that stops naming the standard is caught" \
+  "$(reports "$d" "address-review: declares audience: others but never reaches")" "1"
+rm -rf "$d"
+
+# open-pr names no standard of its own: it writes its description by following pr-description,
+# which does. One hop has to count, or the check would demand the reference in both places.
+d=$(fixture)
+check "reaching the standard through one reference is enough" \
+  "$(reports "$d" "open-pr: declares audience")" "0"
+rm -rf "$d"
+
+d=$(fixture)
+sed -i.bak 's/\[\[plain-english\]\]/the prose standard/g' "$d/skills/pr-description/SKILL.md"
+check "breaking that one hop is caught" "$(reports "$d" "open-pr: declares audience")" "1"
+rm -rf "$d"
+
+# The whole graph is not walked: address-review reaches plain-english through
+# commit -> land -> open-pr -> pr-description, a chain about committing that never shows the
+# standard to the model addressing a review.
+d=$(fixture)
+sed -i.bak 's/\[\[plain-english\]\]/the prose standard/g' "$d/skills/address-review/SKILL.md"
+check "a path through unrelated skills does not count as reaching it" \
+  "$(reports "$d" "address-review: declares audience")" "1"
+rm -rf "$d"
+
+# The point of declaring the audience per skill: a skill written later is covered by its own
+# frontmatter, with no list here to remember to update.
+d=$(fixture)
+mkdir -p "$d/skills/release-notes/agents"
+printf -- '---\nname: release-notes\ndescription: Writes the release notes published to users.\naudience: others\n---\n\nWrite the notes for the release.\n' \
+  > "$d/skills/release-notes/SKILL.md"
+printf 'interface:\n  display_name: "Release notes"\n  short_description: "Write the notes published with a release"\npolicy:\n  allow_implicit_invocation: true\n' \
+  > "$d/skills/release-notes/agents/openai.yaml"
+sed -i.bak 's/    "wire-up": "WIRE UP GUIDELINES",/    "wire-up": "WIRE UP GUIDELINES",\n    "release-notes": "RELEASE NOTES GUIDELINES",/' "$d/copy_prompt.py"
+check "a skill added later is covered by its own declaration" \
+  "$(reports "$d" "release-notes: declares audience: others but never reaches")" "1"
+sed -i.bak 's/^Write the notes for the release\./Write the notes to the [[plain-english]] standard./' "$d/skills/release-notes/SKILL.md"
+check "and naming the standard clears it" "$(reports "$d" "release-notes: declares audience")" "0"
+rm -rf "$d"
+
+# A misspelled value would read as "not others" and drop the check without a word.
+d=$(fixture)
+sed -i.bak 's/^audience: others$/audience: other/' "$d/skills/address-review/SKILL.md"
+check "a value outside the two words is caught" \
+  "$(reports "$d" "address-review: audience must be one of user, others")" "1"
+rm -rf "$d"
+
+# audience: user is a real declaration, not a way to opt out of a check that would apply.
+d=$(fixture)
+sed -i.bak 's/^audience: others$/audience: user/' "$d/skills/address-review/SKILL.md"
+sed -i.bak 's/\[\[plain-english\]\]/the prose standard/g' "$d/skills/address-review/SKILL.md"
+check "declaring the user as the reader asks nothing of the standard" \
+  "$(reports "$d" "address-review: declares audience")" "0"
+rm -rf "$d"
+
+d=$(fixture)
+rm -rf "$d/skills/plain-english"
+sed -i.bak '/"plain-english": "PLAIN ENGLISH STANDARD",/d' "$d/copy_prompt.py"
+check "removing the standard itself is caught" "$(reports "$d" "plain-english is required")" "1"
+rm -rf "$d"
+
 echo "=== a skill copy_prompt.py cannot title would only fail when someone runs make ==="
 d=$(fixture)
 sed -i.bak '/"land": "LAND GUIDELINES",/d' "$d/copy_prompt.py"

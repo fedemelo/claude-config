@@ -2,6 +2,7 @@
 name: daily-update
 description: "Writes the work update the user posts to their team for a window ending today, built from their pull request activity in the current repo but regrouped by initiative and shaped by an external standard for what belongs in a daily update. Use when asked for a daily update, a standup post, or an update to send the team."
 disallowed-tools: Edit Write NotebookEdit
+audience: others
 ---
 
 Write the update the user posts to their team, covering a window that ends today. The material is their pull request activity; the shape is set by the guidelines quoted at the end, which come from outside this repo.

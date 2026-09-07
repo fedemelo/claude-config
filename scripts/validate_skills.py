@@ -14,6 +14,17 @@ MARKETPLACE_NAME = "fedemelo-claude-config"
 
 REFERENCE = re.compile(r"\[\[([a-z0-9-]+)\]\]")
 
+PROSE_STANDARD = "plain-english"
+
+# `audience: others` in the frontmatter declares that someone other than the user reads this
+# skill's output, so the prose standard governs it. Declared per skill rather than listed here,
+# or a skill added later is uncovered until somebody remembers to add it, which is exactly the
+# gap this check exists to close. Neither runtime reads the key: Claude ignores what it does not
+# know, as Codex already does with disable-model-invocation.
+AUDIENCE_KEY = "audience"
+AUDIENCE_VALUES = ("user", "others")
+AUDIENCE_OTHERS = "others"
+
 # Values our YAML never uses. Rejecting them keeps the hand-rolled parser below honest: a file
 # reaching for a real YAML feature fails loudly instead of being read as something else.
 UNSUPPORTED_VALUES = "[{|>&*!"
@@ -231,7 +242,7 @@ def check_policy(path, name, should_be_explicit, frontmatter, errors):
         errors.append(f"{name}: explicit-only is {claude_explicit} but the skill is {listing} explicit-only-skills.txt")
 
 
-def check_skill(path, name, skills, explicit, renderable, errors):
+def check_skill(path, name, skills, explicit, renderable, audiences, errors):
     text = (path / "SKILL.md").read_text()
     try:
         frontmatter = parse_frontmatter(text)
@@ -253,7 +264,53 @@ def check_skill(path, name, skills, explicit, renderable, errors):
     if renderable is not None and name not in renderable:
         errors.append(f"{name}: copy_prompt.py has no title for it, add one to INCLUDED or NAMED_ONLY")
 
+    # A misspelled value would read as "not others" and quietly drop the prose check, so the
+    # key is held to the two words it can be rather than tested for one of them.
+    audience = frontmatter.get(AUDIENCE_KEY)
+    if audience is not None:
+        if audience in AUDIENCE_VALUES:
+            audiences[name] = audience
+        else:
+            errors.append(f"{name}: {AUDIENCE_KEY} must be one of {', '.join(AUDIENCE_VALUES)}, not {audience!r}")
+
     check_policy(path, name, name in explicit, frontmatter, errors)
+
+
+def references_of(skills_root, name):
+    path = skills_root / name / "SKILL.md"
+    if not path.is_file():
+        return set()
+    return set(REFERENCE.findall(path.read_text()))
+
+
+def reaches_standard(skills_root, name, standard):
+    """Whether the skill names the standard, or names a skill that names it.
+
+    One hop, not the whole graph. open-pr writes its description by following pr-description,
+    which is where the standard is named, so requiring the reference in both places would be
+    duplication the DRY rule forbids. Following the graph any further makes the check useless:
+    address-review reaches plain-english through commit -> land -> open-pr -> pr-description,
+    a chain about committing that never puts the standard in front of the model addressing a
+    review, so an unbounded walk reports a skill as covered while the prose goes unguided.
+    """
+    references = references_of(skills_root, name)
+    if standard in references:
+        return True
+    return any(standard in references_of(skills_root, reference) for reference in references)
+
+
+def check_prose_standard(skills_root, skills, audiences, errors):
+    if PROSE_STANDARD not in skills:
+        errors.append(f"{PROSE_STANDARD} is required: skills reference it as the prose standard")
+        return
+
+    for name, audience in sorted(audiences.items()):
+        if audience != AUDIENCE_OTHERS or reaches_standard(skills_root, name, PROSE_STANDARD):
+            continue
+        errors.append(
+            f"{name}: declares {AUDIENCE_KEY}: {AUDIENCE_OTHERS} but never reaches "
+            f"[[{PROSE_STANDARD}]], so the standard is never loaded"
+        )
 
 
 def check_skills(root, errors):
@@ -273,8 +330,11 @@ def check_skills(root, errors):
         errors.append(f"explicit-only-skills.txt: names {name!r}, which is not a skill")
 
     renderable = renderable_skills(root / "copy_prompt.py", errors)
+    audiences = {}
     for name in sorted(skills):
-        check_skill(skills_root / name, name, skills, explicit, renderable, errors)
+        check_skill(skills_root / name, name, skills, explicit, renderable, audiences, errors)
+
+    check_prose_standard(skills_root, skills, audiences, errors)
 
 
 def validate(root):
