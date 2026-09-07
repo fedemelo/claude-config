@@ -1,5 +1,9 @@
 # Global rules (apply to every project)
 
+## Referenced skills
+
+A skill that names another in double brackets, as `[[plain-english]]`, is telling you to load that skill and follow it. Nothing expands the reference for you, so read it before producing the output it governs; a reference you did not read is a rule you are not following. This applies wherever the brackets appear, and it holds however well you recall what the other skill says.
+
 ## Committing
 
 Whenever instructed to commit changes, invoke the `commit` skill first and follow it. Do not commit ad hoc, even if you recall its rules; invoke the skill so its exact instructions are loaded fresh. (A PreToolUse hook also blocks `git commit` until the skill has been invoked in the current session, so if a commit is unexpectedly blocked, invoke the `commit` skill and retry.)

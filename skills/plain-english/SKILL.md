@@ -52,3 +52,5 @@ After:
 > This only works inside a request. In a background job there is no session, so the tenant id is null and the planner crashes. I think the tenant id should be an argument instead.
 
 Applying this: invoked directly, rewrite the given text against these rules and return it. Referenced from another skill, apply it to every part of the output that a person other than the user will read. It governs prose only, never code, identifiers, quoted text, or command output.
+
+A skill naming this standard in double brackets is telling you to load this file and apply it, not merely that it exists. The name in the brackets is a skill, and nothing expands the reference for you: unless you read it, the rules above are not in front of you and the text you write will not follow them. So load it before writing the output it governs, not after. The same holds for every double-bracket reference in these skills.
