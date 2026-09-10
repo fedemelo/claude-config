@@ -38,6 +38,18 @@ claude --bg -n "review-<n>" --permission-mode auto "/local-review <url>"
 
 Skip any PR that already has a session named `review-<n>` in `claude agents --json --all`, so running this again starts only what is new. Never attach to a session you started, read its output, or wait on it. Switch to the tab yourself when you want the review.
 
+### Reporting back, in Claude
+
+This is the Claude CLI's own report format — it does not apply to the Codex path below, which keeps its own. No table: one block per PR, in the same newest-first order as the list, and nothing else surrounding it. For each PR:
+
+```
+#<n>: <title> (<created>)
+    claude attach <id>
+    <url>
+```
+
+`<id>` is the short id `claude --bg` returned for that PR's session. A PR skipped because a `review-<n>` session already existed still gets a line, using that session's existing id.
+
 ## Where there is no local claude CLI
 
 In Codex, or a cloud session without the CLI, `claude --bg` does not exist, and there is no way to hand a cloud session a starting prompt. Still print the list, then one line per PR for you to paste into a session of your own:
@@ -62,4 +74,4 @@ Print them; never run them. A session you have not read yet is not yours to dele
 
 ## What to report
 
-The list as the command printed it, the sessions started with their names and ids, which PRs were skipped because a session was already running, and the `claude rm` lines. Nothing about any PR's contents: you have not read one.
+In Claude, use the block format under "Reporting back, in Claude" above for the list and the started sessions, plus the `claude rm` lines from the section below. In Codex or a cloud session without the CLI, report the list as the command printed it, the `/local-review` lines to paste, and the `claude rm` lines. Nothing about any PR's contents, either way: you have not read one.
