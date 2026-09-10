@@ -4,7 +4,7 @@
 # is named below. These eight are named because each mutates something outside the working
 # tree, so an invocation the user did not ask for costs more than a round trip. `sync`
 # force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
-# `wire-up` pulls two repos and rewires the whole machine's setup, and `address-review-loop` spends
+# `wire-up` pulls two repos and rewires the whole machine's setup, and `review-rounds` spends
 # rounds of agents committing and pushing to a branch until a review approves it, and
 # `review-queue` starts a session per PR waiting on your review.
 #
@@ -21,10 +21,10 @@
 # agents/openai.yaml's `policy.allow_implicit_invocation` to the same answer, so a skill
 # cannot end up explicit-only in one runtime and automatic in the other.
 address-review
-address-review-loop
 land
 open-pr
 review-queue
+review-rounds
 sync
 todo
 wire-up

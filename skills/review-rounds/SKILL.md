@@ -1,5 +1,5 @@
 ---
-name: address-review-loop
+name: review-rounds
 description: Runs a PR through rounds of review and addressing until a review approves it or three rounds are spent, with every review written by a separate agent that knows nothing about the earlier rounds. Hands each review to the address-review skill, which fixes the real findings and pushes, and hands back the replies and anything left.
 disable-model-invocation: true
 ---
