@@ -1,6 +1,6 @@
 ---
 name: review-rounds
-description: Runs a PR through rounds of review and addressing until a review approves it or three rounds are spent, with every review written by a separate agent that knows nothing about the earlier rounds. Hands each review to the address-review skill, which fixes the real findings and pushes, and hands back the replies and anything left.
+description: Runs a PR through rounds of review and addressing until a review approves it or three rounds are spent, with every review written by a separate agent that knows nothing about the earlier rounds. Hands each review to the address-review skill, which fixes the real findings and pushes, ends every run with a comment-hygiene pass over the code the PR touches, and hands back the replies and anything left.
 disable-model-invocation: true
 ---
 
@@ -85,12 +85,29 @@ Someone is reading the PR, so the cycle does not run. It would push commits unde
 
 Run one review and one addressing pass, tell the pass not to push, and end there. Report that the work is sitting in local commits, and why it stopped at one pass.
 
+## Before reporting
+
+Every run ends with one pass over the comments in the code the PR touches, whatever ended the cycle: an approval in round 1, an approval in a later round, three rounds spent, or the single pass that runs when reviewers are already on the PR. A review rarely spends a finding on a comment that restates the code, and an addressing pass judges only the comments in the lines it happened to touch, so the rest of the PR reaches the standard nowhere but here.
+
+It is another agent with an empty context, spawned like an addressing pass and for the same reason: this session does not touch code. Prompt it with:
+
+1. The PR number.
+2. Its task: invoke the comment-hygiene skill and apply it to every comment in the code this PR changes, reading the changed files rather than the diff alone, since a comment the PR left untouched next to code the PR rewrote is now judged against different code. comment-hygiene is not gated, so it invokes it with the Skill tool normally.
+3. Its limit: comments, and the refactors comment-hygiene names for removing the need for one, and nothing else. No finding gets fixed here and no behavior changes.
+4. To commit by following the commit skill, and whether to push, decided by the same rule as an addressing pass: push unless reviewers have appeared on the PR, and re-check that here too.
+5. What to return: what it removed, what it refactored, and every comment it kept that the standard would usually reject, with the reason it gave for keeping it.
+
+Then confirm the working tree is clean and the push landed, exactly as after an addressing pass.
+
+One case skips it. If an addressing pass broke the clean-tree contract, the run is already stopped and stays stopped: a comment pass would commit on top of a tree holding changes that are not yours.
+
 ## What to report
 
 1. Every round's verdict, in order, and where the run stopped: an approval, three rounds spent, a blocking question, or a contract broken.
 2. Every reply that came back, by round and point id, verbatim, for the user to post. These are the replies themselves, not a summary of them.
 3. Whatever any pass discarded instead of committing, with the reason it gave.
-4. What the run pushed, and the head it left the branch on.
-5. The paths under `<dir>`, so any review or reply can be read in full.
+4. What the comment pass changed, and any comment it kept against the standard.
+5. What the run pushed, and the head it left the branch on.
+6. The paths under `<dir>`, so any review or reply can be read in full.
 
 You have no view of the PR to add, so add none.
