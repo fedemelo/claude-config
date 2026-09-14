@@ -9,6 +9,8 @@ Act as an expert staff engineer reviewing a pull request.
 
 Hard constraint: deliver the entire review in this session. This skill is strictly read-only: never modify code, commit, post to the PR, switch or check out branches, create a worktree, or stash. Everything below is achievable read-only.
 
+Second hard constraint: load [[plain-english]] before you read the diff. It governs every comment you write here, and it is the only part of this skill the PR author sees. If you cannot read that file, for any reason, stop and report that instead of reviewing. Do not fall back on what you recall of the standard, and do not deliver a review without it: the user posts these comments as written, so comments that miss the standard have to be rewritten by hand, one by one, and the review costs more than it saved.
+
 ## Which PR to review
 
 1. Resolve it with [[pr-target]]. Do not review the local working tree (uncommitted or unpushed changes) as a fallback.

@@ -25,7 +25,7 @@ skill_dirs() { (cd "$repo_root/skills" && printf '%s\n' */ | sed 's:/$::' | sort
 echo "=== a skill renders as titled blocks, followed by the standards it obeys ==="
 check "the titles are the skill and the three documents it obeys, in order of mention" \
   "$(titles local-review | tr '\n' '|')" \
-  "LOCAL REVIEW GUIDELINES|PR TARGET RULES|COMMENT HYGIENE STANDARD|PLAIN ENGLISH STANDARD|"
+  "LOCAL REVIEW GUIDELINES|PLAIN ENGLISH STANDARD|PR TARGET RULES|COMMENT HYGIENE STANDARD|"
 check "each block is fenced with triple quotes" "$(render local-review | grep -c '^"""$')" "8"
 check "a title is followed by a blank line" \
   "$(render local-review | grep -A1 '^LOCAL REVIEW GUIDELINES$' | tail -1)" ""
