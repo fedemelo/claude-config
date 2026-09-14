@@ -90,13 +90,26 @@ Order the findings by category, in the order listed under "Categories" below, ra
 
 Reasoning is for the user, who decides whether to post. It has to convince them the finding is real, so give it everything: what is wrong, the code path that proves it, every function, module, and file involved, and how it was verified, naming the files and lines read. Length does not matter here.
 
-Comment is for the PR author, and the user posts it as written. Follow the [[plain-english]] standard in full, plus:
+Comment is for the PR author, and the user posts it as written. [[plain-english]] governs every word of it, in full and rule by rule. It is not advice to be weighed against how much the finding has to say: a comment that breaks one of its rules is a comment the user has to rewrite or drop, which loses the finding you did the work to find. So write the comment, then read it back against each rule in that file and fix what fails. A hard finding is not a reason for a long comment, it is the case where the rules matter most.
 
-1. Name at most one identifier beyond what is already visible on the commented line. Every other name belongs in the reasoning.
-2. Say what goes wrong, and what to do instead when that is not obvious. Leave out how the finding was reached; that is what the reasoning is for.
-3. Investigative work is the one exception: reading logs, querying the database, re-running the code, putting an image through a pipeline. Name it only when the argument carries no weight without it, because the finding rests on what that work turned up and the author cannot see it in the diff. Whenever the code alone makes the case, the work goes unmentioned.
-4. When it is named, the opinion stays in the first person and the work is attributed to Claude: state the conclusion as "I think ...", then say what you had Claude do and what it found. For example: "I think this drops the last batch. I had Claude re-run the import against the staging dump, and the final 12 rows never landed."
-5. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
+On top of the standard:
+
+1. Name at most one identifier beyond what is already visible on the commented line, and only when the author cannot act without it. Every other name belongs in the reasoning. A path, a helper elsewhere that already does it right, the constant you are comparing against: each one is a thing the author must go and look up before they can finish reading the sentence. Having a pattern to copy is not a reason to name it, since "we already truncate this elsewhere" makes the same point, and the names are in the reasoning for the user to add if they want them.
+2. No numbers, unless the finding stops being true without them. A page count, a character limit, a row count, a version: the reader takes it on faith that some threshold exists, and its exact value changes nothing about what they do next. "A large document will not fit" is the same argument as "a 100 page document is past the 272k character limit", and asks nothing of the reader. Keep a number when the number is the finding: an off-by-one, a wrong constant, a limit the code sets too high. Every other number goes in the reasoning.
+3. Say what goes wrong, and what to do instead when that is not obvious. Leave out how the finding was reached; that is what the reasoning is for.
+4. Investigative work is the one exception: reading logs, querying the database, re-running the code, putting an image through a pipeline. Name it only when the argument carries no weight without it, because the finding rests on what that work turned up and the author cannot see it in the diff. Whenever the code alone makes the case, the work goes unmentioned.
+5. When it is named, the opinion stays in the first person and the work is attributed to Claude: state the conclusion as "I think ...", then say what you had Claude do and what it found. For example: "I think this drops the last batch. I had Claude re-run the import against the staging dump, and the final 12 rows never landed."
+6. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
+
+What a comment that fails all of this looks like:
+
+> A 100+ page document is exactly what gets here, and its full OCR text will not fit the model's input either — past roughly 272k characters the request comes back as a content-length error, so the fallback fails the same way the images did. AP already hit this and truncates: truncateOcrToTokenBudget in payable_parsed_headers.ts is the pattern to copy — cut the text to a share of llm.getMaxTokenInputSize before sending it.
+
+The same finding, postable:
+
+> I think the full OCR text of a large document will not fit the model's input, so this fallback breaks too. We could cut the text down to a share of the model's limit before sending it. We already do that for payables.
+
+Everything dropped was true: the page count, the character limit, the name of the error, the helper and the file it lives in, and the two dashes holding the sentences together. None of it changes what the author does next, and all of it belongs in the reasoning above.
 
 Comment on every detail, however minor, even when the verdict is APPROVE.
 
