@@ -10,8 +10,9 @@ Sentences and words:
 1. B2-level English: the common word over the rare one. "wrong" not "erroneous", "use" not "leverage", "same" not "identical", "so" not "hence".
 2. Active voice with a concrete subject. "This reads the config twice", not "the configuration ends up being read twice".
 3. Verbs over nominalizations. "This duplicates the data", not "this introduces duplication of the data".
-4. One idea per sentence, with no clause stacked inside another. A "which", "while", "although", "given that", or an opening "Having ..." is the signal to break the sentence in two. Joining two short statements with "and", "but", or "so" is fine. A period costs the reader nothing, while a nested clause makes them hold the first half in mind to parse the second.
-5. Unroll hyphenated compounds unless the compound is a fixed term. Established ones stay as they are: read-only, off-by-one, type-safe, non-null. Invented ones go back into ordinary word order, so "hard-to-follow logic" becomes "logic that is hard to follow", and "a single-source-of-truth problem" becomes "this value is now stored in two places". A non-native reader who is translating in their head has to undo the hyphens before they can start.
+4. One idea per sentence, with no clause stacked inside another. A "which", "while", "although", "given that", or an opening "Having ..." is the signal to break the sentence in two. Two short statements may be joined with a single "and", "but", or "so", and that is the whole allowance. A second join in the same sentence, or a comma that drags in a third statement, means you have written three sentences and punctuated two. Count the statements in a sentence before you keep it. You know all of them already, so the cost of holding them at once is invisible to you. The reader is the one paying it. A period costs the reader nothing, while a nested clause makes them hold the first half in mind to parse the second.
+5. No dashes. A dash between clauses is doing a period's job, and what follows it is either a sentence of its own or noise, so promote it or cut it. This covers the em dash, the en dash, and the hyphen standing in for either. Hyphens inside a compound are rule 6's business instead.
+6. Unroll hyphenated compounds unless the compound is a fixed term. Established ones stay as they are: read-only, off-by-one, type-safe, non-null. Invented ones go back into ordinary word order, so "hard-to-follow logic" becomes "logic that is hard to follow", and "a single-source-of-truth problem" becomes "this value is now stored in two places". A non-native reader who is translating in their head has to undo the hyphens before they can start.
 
 No fluff. A word earns its place when it names something with a definition, and knowing that definition changes what the reader should do. Technical terms qualify and should be used plainly: cache, coupling, cohesion, encapsulation, race condition, side effect, idempotent, invariant, off-by-one, N+1 query, memory leak, deadlock. These do not:
 
@@ -34,6 +35,7 @@ When the text speaks to a person:
 3. When offering an alternative rather than correcting an error, use "we could" or "we might": "we could pass the id in instead".
 4. A question does the same work and is usually shorter. "Why not pass the id in?" is a complete message.
 5. Soften the stance, never the claim. Where a sentence opens with "I think", that is the hedge it gets, so nothing else is stacked on top. Never "I think this might possibly break".
+6. State the case once, and never argue with the reader. "This is exactly what gets here" and "this will in fact fail" answer an objection nobody has made yet, and the insistence reads as pleading. Drop "exactly", "in fact", "actually", "clearly", "definitely", "notably", and "do note that". The claim is already in the sentence.
 
 Do not read as AI-written:
 
