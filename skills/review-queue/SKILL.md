@@ -1,6 +1,6 @@
 ---
 name: review-queue
-description: Lists the open PRs on this repo that are waiting on your review, newest first, and opens one space per PR to review it — a devspaces worktree in the "Local Review worktrees" group in a pod, a background session elsewhere — so the reviews arrive as separate spaces you switch between rather than in this one. Also names the review spaces whose PR no longer needs you, for you to delete.
+description: Lists the open PRs on this repo that are waiting on your review, newest first, and opens one space per PR to review it — a devspaces workspace in the "Local Review" group in a pod, a background session elsewhere — so the reviews arrive as separate spaces you switch between rather than in this one. Also names the review spaces whose PR no longer needs you, for you to delete.
 disable-model-invocation: true
 ---
 
@@ -28,9 +28,11 @@ One space each, and never a review in this one. What a space is depends on where
 
 | Where you are | What to open | How |
 | --- | --- | --- |
-| A devspaces pod, which has a `devspaces` executable on `PATH` | A devspaces worktree, in the `Local Review worktrees` group | [In devspaces](#in-devspaces) |
+| A devspaces pod, which has a `devspaces` executable on `PATH` | A devspaces workspace, in the `Local Review` group | [In devspaces](#in-devspaces) |
 | Anywhere else with the `claude` CLI | A background session | [Where the claude CLI is local](#where-the-claude-cli-is-local) |
 | Neither, e.g. Codex or a cloud session | Nothing; print a line to paste | [Where there is no local claude CLI](#where-there-is-no-local-claude-cli) |
+
+**There is no fallback.** The row follows from the environment, not from how well its mechanism cooperates. If the one you landed on does not work, stop, name what you ran and what it said, and report which PRs got a space and which did not. Never drop to the row below, and never review a PR here instead. A pod that opened background sessions because the workspaces were harder is a pod where the reviews are somewhere you will not think to look.
 
 Whichever row you land on, these hold:
 
@@ -42,11 +44,13 @@ Whichever row you land on, these hold:
 
 ### In devspaces
 
-Each PR gets its own worktree, and every one of those worktrees is created in the group named exactly `Local Review worktrees`. Both halves are the point of this path: a worktree per PR keeps the checkouts from colliding, and the group is what keeps eight review worktrees out of the groups you work in. Use the pod's own devspaces worktree mechanism for it, and create each worktree in that group from the start rather than somewhere else to be moved later.
+Each PR gets its own devspaces workspace, and every one of those workspaces is filed in the group named exactly `Local Review`. Both halves are the point of this path: a workspace per PR keeps the checkouts from colliding, and the group is what keeps eight reviews out of the groups you work in. File each workspace in that group as you create it, rather than somewhere else to be moved later.
 
-Read the worktrees already in that group before opening anything. One named for a PR in the list means that review is already queued, so leave it as it is — opening a second worktree for the same PR is the duplicate this step exists to prevent, and the one already there may hold a review you have not read.
+Take the commands from the pod's own `devspaces` CLI rather than from memory, since its flags are free to change: read its help, then use whatever it offers for creating a workspace, for filing that workspace in a group, for listing the workspaces in one, and for giving a new workspace a starting prompt. Seed each one with `/local-review <url>`, so the review is running when you arrive.
 
-Seed each worktree with `/local-review <url>` so the review is running when you arrive.
+Read the workspaces already in that group before creating anything. One named for a PR in the list means that review is already queued, so leave it as it is — a second workspace for the same PR is the duplicate this step exists to prevent, and the one already there may hold a review you have not read.
+
+If the CLI will not do one of those four things, that is the end of this path: stop and report it, as above. No worktrees, no background sessions, no reviews here.
 
 ### Where the claude CLI is local
 
@@ -71,7 +75,7 @@ This is the report format for both paths above, devspaces and the local CLI. It 
     <url>
 ```
 
-"How to reach it" is the worktree's name in devspaces, and `claude attach <id>` with the short id `claude --bg` returned elsewhere. A PR skipped because a `review-<n>` space already existed still gets a line, pointing at that space.
+"How to reach it" is the workspace's name in devspaces, and `claude attach <id>` with the short id `claude --bg` returned elsewhere. A PR skipped because a `review-<n>` space already existed still gets a line, pointing at that space.
 
 ## Where there is no local claude CLI
 
@@ -87,7 +91,7 @@ Say that is what happened and why. Never review the PRs here instead: several re
 
 A PR that is no longer in the list no longer wants your review: you reviewed it, or it closed. Its space is now clutter.
 
-Take every `review-<n>` space for an `<n>` absent from the list — worktrees in the `Local Review worktrees` group in devspaces, sessions in `claude agents --json --all` elsewhere — and hand them back for you to delete. Name the worktrees in devspaces; print one line each elsewhere:
+Take every `review-<n>` space for an `<n>` absent from the list — workspaces in the `Local Review` group in devspaces, sessions in `claude agents --json --all` elsewhere — and hand them back for you to delete. Name the workspaces in devspaces; print one line each elsewhere:
 
 ```sh
 claude rm <id>
