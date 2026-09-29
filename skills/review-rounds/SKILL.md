@@ -20,11 +20,17 @@ Resolve it with [[pr-target]]. Pass the number to every agent from then on, so n
 
 Check all of it, and stop with what you found if any of it fails. Every round runs against one working tree, so the agents run one at a time and never in parallel.
 
-1. The repo is on the PR's head branch, the working tree is clean, and the head branch lives in this repo rather than in a fork. A fork cannot be pushed to, and without a push the next round reviews the same code.
+1. The working tree is clean, and the head branch lives in this repo rather than in a fork. A fork cannot be pushed to, and without a push the next round reviews the same code.
 
 ```sh
 gh pr view <pr> --json headRefName,headRepositoryOwner
 git status --porcelain
+```
+
+   If both hold and the repo is on another branch, switch to the head branch yourself rather than stopping. The clean tree is what makes the switch safe, so it is checked first. Stop only if the switch fails, for instance because a local branch of that name has diverged from the PR.
+
+```sh
+gh pr checkout <pr>
 ```
 
 2. Whether reviewers are already on the PR. If they are, do not start the cycle; see "When the PR already has reviewers".
