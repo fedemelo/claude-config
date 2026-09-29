@@ -33,7 +33,7 @@ On a machine you own, finish the job rather than leaving it to the user. For eac
 
 ## Check what the installers leave out
 
-Each of these fails at first use rather than at install time, so check all four and report them together:
+Each of these fails at first use rather than at install time, so check every one of them and report them together:
 
 1. `~/.local/bin` is on `PATH`, via `command -v git-land git-todo git-review-feedback`. If the files exist but the commands do not resolve, give the user the line to add to their shell rc and ask before editing it yourself.
 2. `git config --global user.email` is set. A fresh machine has none and every commit fails. Point at git-tools' `gitconfig.example` and let the user fill in their name, email and signing key. Never guess any of the three.
@@ -43,4 +43,4 @@ Each of these fails at first use rather than at install time, so check all four 
 
 ## Report
 
-Say what each repo pulled or that it was already current, what the installers changed — new links, pruned links, settings merged — and, last, whatever the user still has to do themselves. If nothing changed and all four checks pass, say that in one line.
+Say what each repo pulled or that it was already current, what the installers changed — new links, pruned links, settings merged — and, last, whatever the user still has to do themselves. If nothing changed and every check passes, say that in one line.
