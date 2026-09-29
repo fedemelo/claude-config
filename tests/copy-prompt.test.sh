@@ -23,10 +23,10 @@ note() { render "$1" | sed -n '/^REFERENCED DOCUMENTS NOT INCLUDED$/,$p'; }
 skill_dirs() { (cd "$repo_root/skills" && printf '%s\n' */ | sed 's:/$::' | sort); }
 
 echo "=== a skill renders as titled blocks, followed by the standards it obeys ==="
-check "the titles are the skill and the three documents it obeys, in order of mention" \
+check "the titles are the skill and the four documents it obeys, in order of mention" \
   "$(titles local-review | tr '\n' '|')" \
-  "LOCAL REVIEW GUIDELINES|PLAIN ENGLISH STANDARD|PR TARGET RULES|COMMENT HYGIENE STANDARD|"
-check "each block is fenced with triple quotes" "$(render local-review | grep -c '^"""$')" "8"
+  "LOCAL REVIEW GUIDELINES|REVIEW COMMENT STANDARD|PR TARGET RULES|COMMENT HYGIENE STANDARD|PLAIN ENGLISH STANDARD|"
+check "each block is fenced with triple quotes" "$(render local-review | grep -c '^"""$')" "10"
 check "a title is followed by a blank line" \
   "$(render local-review | grep -A1 '^LOCAL REVIEW GUIDELINES$' | tail -1)" ""
 check "a skill referencing nothing renders alone" \

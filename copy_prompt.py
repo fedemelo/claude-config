@@ -28,6 +28,7 @@ INCLUDED = {
     "plain-english": "PLAIN ENGLISH STANDARD",
     "pr-description": "PR DESCRIPTION STANDARD",
     "pr-target": "PR TARGET RULES",
+    "review-comment": "REVIEW COMMENT STANDARD",
     "work-summary": "WORK SUMMARY GUIDELINES",
 }
 
