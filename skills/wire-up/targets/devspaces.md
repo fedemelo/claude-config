@@ -46,7 +46,7 @@ mkdir -p /mnt/personal/claude/skills
 cp -a /tmp/claude-config-src/skills/. /mnt/personal/claude/skills/
 ```
 
-Every skill, with no exceptions to keep track of, and `cp -a` to keep the trees and the file modes. `wire-up` is one of them: it comes with its `targets/` directory, so a later refresh is one `/wire-up` and no commands typed by hand. Its `SKILL.md` only chooses a file to read. It reads the three pod signals, all of which hold here, so it reads this file and never the owned-machine one, and the choosing itself runs nothing. The copy of the skill being followed right now is overwritten by this step, which changes nothing, since this session has already read it.
+Every skill, with no exceptions to keep track of, and `cp -a` to keep the trees and the file modes. `wire-up` is one of them: it comes with its `targets/` directory, so a later refresh is one `/wire-up` and no commands typed by hand. Its `SKILL.md` only chooses a file to read. It reads the pod signals, all of which hold here, so it reads this file and never the owned-machine one, and the choosing itself runs nothing. The copy of the skill being followed right now is overwritten by this step, which changes nothing, since this session has already read it.
 
 To refresh a single skill rather than all of them, name its directory instead: `cp -a /tmp/claude-config-src/skills/commit /mnt/personal/claude/skills/`.
 
@@ -76,7 +76,7 @@ cp -a /tmp/git-tools-src/bin/git-todo            /mnt/personal/claude/git-tools/
 cp -a /tmp/git-tools-src/bin/git-review-feedback /mnt/personal/claude/git-tools/bin/
 ```
 
-These three are standalone scripts with no install step. `~/.local/bin` is already on `PATH` in the pod image, and git resolves an executable named `git-<name>` there as the subcommand `git <name>`, so copying them is the whole installation — no config key, nothing to set. Keep the executable bit (`cp -a` does); a copy that loses it fails as "command not found".
+These are standalone scripts with no install step. `~/.local/bin` is already on `PATH` in the pod image, and git resolves an executable named `git-<name>` there as the subcommand `git <name>`, so copying them is the whole installation — no config key, nothing to set. Keep the executable bit (`cp -a` does); a copy that loses it fails as "command not found".
 
 Apply removals here too, for the same reason as the skills:
 
@@ -89,7 +89,7 @@ for f in /mnt/personal/claude/git-tools/bin/*; do
 done
 ```
 
-If `/tmp/git-tools-src/bin` holds a script the three lines above do not name, report it rather than copying it. Whether a new tool belongs in a pod is the user's call.
+If `/tmp/git-tools-src/bin` holds a script the lines above do not name, report it rather than copying it. Whether a new tool belongs in a pod is the user's call.
 
 Optionally also copy `hooks/commit-msg` and `ignore` onto the share for reference, but **do not wire either one** — each needs a global `git config` key, and the hook conflicts with pod policy. Leave `core.hooksPath` and `core.excludesFile` unset.
 
@@ -97,7 +97,7 @@ Optionally also copy `hooks/commit-msg` and `ignore` onto the share for referenc
 
 The pod runs the first of `install.sh`, `bootstrap.sh`, `setup.sh` found **directly** in `/mnt/personal/dotfiles/` on every start. Discovery keys on the script, not the directory. If the user already has one, **add to it** rather than replacing it — it may carry shell config, gitconfig and more. A script written before Codex was supported copies skills into `~/.claude/skills` only; replace that block with the one below rather than adding a second.
 
-The three blocks this setup needs:
+The blocks this setup needs:
 
 ```bash
 # Personal skills + slash commands: copy from the persistent share into
@@ -144,7 +144,7 @@ Check, do not assume:
 
 1. **No symlinks:** `find ~/.claude/skills ~/.agents/skills -type l` prints nothing.
 2. **Content matches:** `diff -r /tmp/claude-config-src/skills <dir>` reports no difference inside any skill from the repo, for both `~/.claude/skills` and `~/.agents/skills`. A name that appears only in one of those came from the pod image and is not yours.
-3. **Deletions took:** every name the two loops printed is gone from `/mnt/personal/claude/skills`, `~/.claude/skills`, `~/.agents/skills`, `/mnt/personal/claude/git-tools/bin` and `~/.local/bin`.
+3. **Deletions took:** every name the removal loops printed is gone from `/mnt/personal/claude/skills`, `~/.claude/skills`, `~/.agents/skills`, `/mnt/personal/claude/git-tools/bin` and `~/.local/bin`.
 4. **Frontmatter matches directory:** each `SKILL.md`'s `name:` equals its directory name, or neither runtime will load it.
 5. **References resolve:** every `[[name]]` in a copied skill names a skill that was also copied. Missing ones are dangling.
 6. **Tools resolve:** `command -v git-land git-todo git-review-feedback`, then a real read, e.g. `git review-feedback <a recent PR number>` from a repo. `--help` through the `git` subcommand form hits a man-page error on the minimized pod image, which is git, not a broken tool; use `git-land --help` with the hyphen.
@@ -159,7 +159,7 @@ Both of these are real disagreements between the user's conventions and pod poli
 - **Commit attribution.** The `commit` skill forbids a `Co-Authored-By` trailer, and git-tools' `commit-msg` hook strips one. The pod's managed settings (`/etc/claude-code/managed-settings.json`, key `attribution.commit`) inject exactly that trailer, and organization policy requires it. Managed settings outrank a user-scope skill. Installing the hook would also rewrite commit messages in **every** repo in the pod, since `core.hooksPath` is global.
 - **Repo-specific delivery skills.** A repo may mandate its own PR workflow — `canals` tells every agent to use `/canals:ship-it` — which overlaps `commit`, `open-pr` and `sync`. Both sets are installed; which wins is the user's call, per repo.
 
-Also worth stating plainly: without git-tools, `land` and `todo` are inert and the four review skills (`local-review`, `address-review`, `second-opinion`, `verify-replies`) lose the `git review-feedback` read they are built on. The skills expect a hook to explain that; no hooks are installed here, so the failure is a raw `git: 'review-feedback' is not a git command`.
+Also worth stating plainly: without git-tools, `land` and `todo` are inert and the review skills (`local-review`, `address-review`, `second-opinion`, `verify-replies`) lose the `git review-feedback` read they are built on. The skills expect a hook to explain that; no hooks are installed here, so the failure is a raw `git: 'review-feedback' is not a git command`.
 
 ## Updating later
 
