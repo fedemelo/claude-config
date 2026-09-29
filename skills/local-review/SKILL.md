@@ -7,9 +7,11 @@ audience: others
 
 Act as an expert staff engineer reviewing a pull request.
 
+The review runs in two steps, and this file is the first one. You find the problems, prove them, and categorize them. You write no part of what the PR author reads: the comments are written afterwards by [[review-comment]], in one agent whose context holds your findings and nothing else.
+
 Hard constraint: deliver the entire review in this session. This skill is strictly read-only: never modify code, commit, post to the PR, switch or check out branches, create a worktree, or stash. Everything below is achievable read-only.
 
-Second hard constraint: load [[plain-english]] before you read the diff. It governs every comment you write here, and it is the only part of this skill the PR author sees. If you cannot read that file, for any reason, stop and report that instead of reviewing. Do not fall back on what you recall of the standard, and do not deliver a review without it: the user posts these comments as written, so comments that miss the standard have to be rewritten by hand, one by one, and the review costs more than it saved.
+Second hard constraint: do not write the comments. The split is the whole point. A context that has read the diff, argued every finding, and still has a verdict to reach writes comments that carry the argument with them, and the rules for a postable comment lose to everything else it is holding. You are that context. So make the case in the reasoning, where length costs nothing, and hand the phrasing to an agent whose only job it is.
 
 ## Which PR to review
 
@@ -63,9 +65,9 @@ This is the highest priority: correctness is judged against whether the change r
 3. Intent: read the PR description as the author's statement of what they meant to do, and check the code against it. Say so whenever the two diverge, in the form "the description says X, the code does Y", and treat the divergence as a finding about the code or about a change the description never mentions, anchored to the code that diverges rather than to the description. Never review the description itself: not its wording, its formatting, its length, or whether it is still up to date.
 4. Style and hygiene, however minor: `any`, unnecessary typecasts, non-pure functions, missing tests, and comments or JSDocs that fail the [[comment-hygiene]] standard.
 
-## Comment format
+## What a finding is
 
-Number the comments sequentially and write each as:
+Number the findings sequentially and write each as:
 
 ```
 1.
@@ -74,44 +76,62 @@ Line: <piece of code from the diff so it can be found with ctrl+F>
 File: <path of the file that code lives in>
 Reasoning: <the full case for the finding>
 
-Comment: <the comment as it will be posted>
+2.
+...
+```
+
+Every finding is posted on a line of code, so Line and File always point at code the diff touches, and never at the PR description, the title, the commit messages, or anything else outside a file. Such a line always exists. A problem that is real now and was not real before was caused by something this PR changed, however long the chain from cause to effect, so anchor the finding to the line that caused it: the new call for the case it fails to handle, the changed signature for the caller left behind, the new branch for the test that does not cover it. When nothing in the diff caused it, the problem predates the PR and is not this review's business.
+
+The category is a conclusion drawn from the reasoning by the tests below, never a label chosen before the case is made. Settle it before writing the block out, so the category standing at the top reports a decision already taken.
+
+Reasoning has two readers, and they need the same thing from it. The user decides whether to post, so it has to convince them the finding is real. The agent writing the comment sees this and nothing else, so whatever the comment needs has to be in here. Give it everything: what is wrong, the code path that proves it, every function, module, and file involved, and how it was verified, naming the files and lines read. Length does not matter here, and which parts survive into the comment is not your call.
+
+Order the findings by category, in the order listed under "Categories" below, rather than by file. Number them sequentially across the whole list.
+
+Raise a finding for every detail, however minor, even when the verdict is APPROVE.
+
+## Writing the comments
+
+Once every finding is written, ordered and numbered, spawn one agent with the Agent tool to write all of the comments. Any type whose context starts empty. Never a fork, which inherits everything this session has read and leaves you back where you started.
+
+One agent for the whole list, not one per finding. What keeps the comments short is what the agent has not read, and that is already true of an agent holding the findings alone; a fan-out pays a fresh agent's setup and its own copy of the standard for every finding, and review-comment does the one-at-a-time part itself.
+
+Give it the findings as you numbered them, each with its four fields, verbatim, and this task:
+
+> Invoke the review-comment skill and follow it exactly. Write the comment for each of these findings. Return the comments numbered as the findings are, and nothing else.
+
+Verbatim means the reasoning as you wrote it, not a shortened version: an agent handed less than the user will read is writing from a case you already decided to weaken.
+
+Nothing else means it. No PR number, no diff, no verdict, no ticket, and nothing about what you think a comment should say. Each of those is the context the split exists to keep out, and a hint about the wording makes the agent write yours instead of its own.
+
+Then paste each comment back under its finding, exactly as it came. You do not shorten it, expand it, or put back a detail you miss. If a comment is wrong about the finding rather than merely shorter than you would have written it, the reasoning it was written from was wrong or incomplete: fix the reasoning and send the corrected finding back to that same agent with SendMessage, so the comments it already wrote are not written again. If one comes back with a `Missing:` line, that is the same signal, and the same fix.
+
+A finding it returned no comment for is not one you fill in yourself. Ask it for that one.
+
+## The review you deliver
+
+Each finding, with its comment under it:
+
+```
+1.
+Category: BUG / MAJOR / MINOR / SUGGESTION / HYPOTHETICAL
+Line: <piece of code from the diff so it can be found with ctrl+F>
+File: <path of the file that code lives in>
+Reasoning: <the full case for the finding>
+
+Comment: <the comment as the agent wrote it>
 
 2.
 ...
 ```
 
-Every comment is posted on a line of code, so Line and File always point at code the diff touches, and never at the PR description, the title, the commit messages, or anything else outside a file. Such a line always exists. A problem that is real now and was not real before was caused by something this PR changed, however long the chain from cause to effect, so anchor the comment to the line that caused it: the new call for the case it fails to handle, the changed signature for the caller left behind, the new branch for the test that does not cover it. When nothing in the diff caused it, the problem predates the PR and is not this review's business.
-
 Reproduce that layout exactly, including the blank line before the comment. The comment is the part the user acts on, so it has to be findable at a glance rather than buried against the reasoning above it.
 
-Two rules survive the field order. The reasoning is written first and the comment is compressed from it, never the other way round. The category is a conclusion drawn from the reasoning by the tests below, never a label chosen before the case is made; settle both before writing the block out, so the category standing at the top reports a decision already taken.
+## When the comment step cannot run
 
-Order the findings by category, in the order listed under "Categories" below, rather than by file. Number them sequentially across the whole list.
+Only when the harness offers no way to spawn an agent at all. Then write the comments yourself, and write them last, after every finding is settled and ordered: load review-comment, then take one finding at a time, read that finding's block alone, and write its comment against it before looking at the next. Say in the report that the comments were written in this session rather than in a clean one, so the user reads them harder before posting.
 
-Reasoning is for the user, who decides whether to post. It has to convince them the finding is real, so give it everything: what is wrong, the code path that proves it, every function, module, and file involved, and how it was verified, naming the files and lines read. Length does not matter here.
-
-Comment is for the PR author, and the user posts it as written. [[plain-english]] governs every word of it, in full and rule by rule. It is not advice to be weighed against how much the finding has to say: a comment that breaks one of its rules is a comment the user has to rewrite or drop, which loses the finding you did the work to find. So write the comment, then read it back against each rule in that file and fix what fails. A hard finding is not a reason for a long comment, it is the case where the rules matter most.
-
-On top of the standard:
-
-1. Name at most one identifier beyond what is already visible on the commented line, and only when the author cannot act without it. Every other name belongs in the reasoning. A path, a helper elsewhere that already does it right, the constant you are comparing against: each one is a thing the author must go and look up before they can finish reading the sentence. Having a pattern to copy is not a reason to name it, since "we already truncate this elsewhere" makes the same point, and the names are in the reasoning for the user to add if they want them.
-2. No numbers, unless the finding stops being true without them. A page count, a character limit, a row count, a version: the reader takes it on faith that some threshold exists, and its exact value changes nothing about what they do next. "A large document will not fit" is the same argument as "a 100 page document is past the 272k character limit", and asks nothing of the reader. Keep a number when the number is the finding: an off-by-one, a wrong constant, a limit the code sets too high. Every other number goes in the reasoning.
-3. Say what goes wrong, and what to do instead when that is not obvious. Leave out how the finding was reached; that is what the reasoning is for.
-4. Investigative work is the one exception: reading logs, querying the database, re-running the code, putting an image through a pipeline. Name it only when the argument carries no weight without it, because the finding rests on what that work turned up and the author cannot see it in the diff. Whenever the code alone makes the case, the work goes unmentioned.
-5. When it is named, the opinion stays in the first person and the work is attributed to Claude: state the conclusion as "I think ...", then say what you had Claude do and what it found. For example: "I think this drops the last batch. I had Claude re-run the import against the staging dump, and the final 12 rows never landed."
-6. It must hold up alone. If compressing drops a condition that the finding depends on, keep the condition and cut something else, since a comment that is clear but wrong costs more than a long one.
-
-What a comment that fails all of this looks like:
-
-> A 100+ page document is exactly what gets here, and its full OCR text will not fit the model's input either — past roughly 272k characters the request comes back as a content-length error, so the fallback fails the same way the images did. AP already hit this and truncates: truncateOcrToTokenBudget in payable_parsed_headers.ts is the pattern to copy — cut the text to a share of llm.getMaxTokenInputSize before sending it.
-
-The same finding, postable:
-
-> I think the full OCR text of a large document will not fit the model's input, so this fallback breaks too. We could cut the text down to a share of the model's limit before sending it. We already do that for payables.
-
-Everything dropped was true: the page count, the character limit, the name of the error, the helper and the file it lives in, and the two dashes holding the sentences together. None of it changes what the author does next, and all of it belongs in the reasoning above.
-
-Comment on every detail, however minor, even when the verdict is APPROVE.
+If review-comment itself cannot be loaded, stop and report that instead of delivering a review. Do not fall back on what you recall of it, and do not deliver findings with no comments: the user posts these comments as written, so comments that miss the standard have to be rewritten by hand, one by one, and the review costs more than it saved.
 
 ## Categories
 
@@ -128,7 +148,7 @@ Use these tests on the boundaries:
 3. MINOR or SUGGESTION: is it objectively wrong, or just not how you would have done it? If wrong, MINOR.
 4. HYPOTHETICAL or BUG: does the triggering condition exist in the code today? If yes, BUG.
 
-When two categories both fit, take the lower one. A genuine question gets no category of its own: file it under the concern behind it, usually MAJOR or HYPOTHETICAL, and phrase the comment as the question.
+When two categories both fit, take the lower one. A genuine question gets no category of its own: file it under the concern behind it, usually MAJOR or HYPOTHETICAL, and say in the reasoning that the comment is to be phrased as the question.
 
 ## Verdict
 
