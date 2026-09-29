@@ -2,7 +2,7 @@
 
 > **New machine, or after any pull:** run `/wire-up`, and Claude does all of the below for you. By hand it is `git pull && ./install.sh` in [git-tools](https://github.com/fedemelo/git-tools) first, then the same here. Editing a skill takes effect immediately through the symlinks, but adding or removing one does not.
 >
-> **In an ephemeral environment, `install.sh` is the wrong tool** — symlinked skills are silently never loaded, and the installers write machine-wide config a pod does not own. `/wire-up` detects that and follows [`targets/devspaces.md`](skills/wire-up/targets/devspaces.md) instead, which copies by hand onto the persistent share. It installs itself there too, so a later refresh is the same `/wire-up`.
+> **In an ephemeral environment, `install.sh` is the wrong tool** — symlinked skills are silently never loaded, and the installers write machine-wide config a pod does not own. `/wire-up` detects that and follows [`targets/devspaces.md`](skills/wire-up/targets/devspaces.md) instead, which copies by hand onto the persistent share and from there into both `~/.claude/skills/` and `~/.agents/skills/`, so Claude and Codex in the pod both get the skills. It installs itself there too, so a later refresh is the same `/wire-up`, or `$wire-up` in Codex.
 
 Global setup for Claude Code and Codex: opinionated skills, the instructions they follow, and the hooks that enforce them.
 
