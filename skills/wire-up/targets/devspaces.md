@@ -50,22 +50,22 @@ Every skill, with no exceptions to keep track of, and `cp -a` to keep the trees 
 
 To refresh a single skill rather than all of them, name its directory instead: `cp -a /tmp/claude-config-src/skills/commit /mnt/personal/claude/skills/`.
 
-The `agents/openai.yaml` beside each `SKILL.md` is Codex's copy of the invocation policy. Claude ignores it, and Codex reads `~/.agents/skills/`, which nothing here populates. Copy it anyway — it is two lines, it keeps the skill whole, and it costs nothing.
+The same share serves both runtimes. Claude reads `~/.claude/skills/` and Codex reads `~/.agents/skills/`, and step 4 copies the share into each. The `agents/openai.yaml` beside each `SKILL.md` is Codex's copy of the invocation policy, which Claude ignores, so nothing else is needed for Codex. The pod image gives Codex the team's `canals` skills plugin but none of these; without the copy into `~/.agents/skills/`, a Codex session in a pod has no personal skills at all.
 
 Skip `CLAUDE.md`, `hooks/` and `settings.json.example` from claude-config. Those are global-instruction and harness changes, not skills; see the conflicts below.
 
-**Then delete the ones upstream no longer has.** A copy only adds, so a skill deleted or renamed in the repo stays on the share and gets copied back into `~/.claude` on every start. Remove from the share whatever the clone no longer has, and remove the same names from `~/.claude/skills`, which step 5 will not do for you:
+**Then delete the ones upstream no longer has.** A copy only adds, so a skill deleted or renamed in the repo stays on the share and gets copied back into both runtimes on every start. Remove from the share whatever the clone no longer has, and remove the same names from `~/.claude/skills` and `~/.agents/skills`, which step 5 will not do for you:
 
 ```sh
 for dir in /mnt/personal/claude/skills/*/; do
   name="$(basename "$dir")"
   [ -d "/tmp/claude-config-src/skills/$name" ] && continue
-  rm -rf "/mnt/personal/claude/skills/$name" "$HOME/.claude/skills/$name"
+  rm -rf "/mnt/personal/claude/skills/$name" "$HOME/.claude/skills/$name" "$HOME/.agents/skills/$name"
   echo "removed $name"
 done
 ```
 
-A rename is a delete plus a copy, so this covers both. It only touches names the share already holds, so it leaves anything the pod image put in `~/.claude/skills` alone. Keep what it prints; the report names it.
+A rename is a delete plus a copy, so this covers both. It only touches names the share already holds, so it leaves anything the pod image put in either skills directory alone. Keep what it prints; the report names it.
 
 ### 3. Copy the git tools
 
@@ -95,17 +95,19 @@ Optionally also copy `hooks/commit-msg` and `ignore` onto the share for referenc
 
 ### 4. Ensure the dotfiles install script
 
-The pod runs the first of `install.sh`, `bootstrap.sh`, `setup.sh` found **directly** in `/mnt/personal/dotfiles/` on every start. Discovery keys on the script, not the directory. If the user already has one, **add to it** rather than replacing it — it may carry shell config, gitconfig and more.
+The pod runs the first of `install.sh`, `bootstrap.sh`, `setup.sh` found **directly** in `/mnt/personal/dotfiles/` on every start. Discovery keys on the script, not the directory. If the user already has one, **add to it** rather than replacing it — it may carry shell config, gitconfig and more. A script written before Codex was supported copies skills into `~/.claude/skills` only; replace that block with the one below rather than adding a second.
 
 The three blocks this setup needs:
 
 ```bash
 # Personal skills + slash commands: copy from the persistent share into
-# ~/.claude on every start. Copy, don't symlink — Claude Code's skill and
-# command discovery doesn't follow symlinks.
+# ~/.claude (Claude Code) and ~/.agents (Codex) on every start. Copy, don't
+# symlink — Claude Code's skill and command discovery doesn't follow symlinks.
 if [ -d /mnt/personal/claude/skills ]; then
-  mkdir -p "$HOME/.claude/skills"
-  cp -a /mnt/personal/claude/skills/. "$HOME/.claude/skills/"
+  for skills_dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
+    mkdir -p "$skills_dir"
+    cp -a /mnt/personal/claude/skills/. "$skills_dir/"
+  done
 fi
 
 if [ -d /mnt/personal/claude/commands ]; then
@@ -124,7 +126,7 @@ fi
 
 It runs on **every** start, so it has to stay idempotent: guard on the source directory, `mkdir -p`, `cp -a` over whatever is there. A failing install script does not block pod startup, so a broken one fails quietly — which is why step 6 verifies rather than trusts.
 
-Note this copies in one direction, share to home. A skill edited in `~/.claude/skills/` is overwritten on the next start; the share is the source of truth.
+Note this copies in one direction, share to home. A skill edited in `~/.claude/skills/` or `~/.agents/skills/` is overwritten on the next start; the share is the source of truth.
 
 ### 5. Apply it
 
@@ -140,13 +142,13 @@ Same command the pod runs at startup, so no restart is needed. It reports `using
 
 Check, do not assume:
 
-1. **No symlinks:** `find ~/.claude/skills -type l` prints nothing.
-2. **Content matches:** `diff -r /tmp/claude-config-src/skills ~/.claude/skills` reports no difference inside any skill from the repo. A name that appears only under `~/.claude/skills` came from the pod image and is not yours.
-3. **Deletions took:** every name the two loops printed is gone from `/mnt/personal/claude/skills`, `~/.claude/skills`, `/mnt/personal/claude/git-tools/bin` and `~/.local/bin`.
-4. **Frontmatter matches directory:** each `SKILL.md`'s `name:` equals its directory name, or Claude will not load it.
+1. **No symlinks:** `find ~/.claude/skills ~/.agents/skills -type l` prints nothing.
+2. **Content matches:** `diff -r /tmp/claude-config-src/skills <dir>` reports no difference inside any skill from the repo, for both `~/.claude/skills` and `~/.agents/skills`. A name that appears only in one of those came from the pod image and is not yours.
+3. **Deletions took:** every name the two loops printed is gone from `/mnt/personal/claude/skills`, `~/.claude/skills`, `~/.agents/skills`, `/mnt/personal/claude/git-tools/bin` and `~/.local/bin`.
+4. **Frontmatter matches directory:** each `SKILL.md`'s `name:` equals its directory name, or neither runtime will load it.
 5. **References resolve:** every `[[name]]` in a copied skill names a skill that was also copied. Missing ones are dangling.
 6. **Tools resolve:** `command -v git-land git-todo git-review-feedback`, then a real read, e.g. `git review-feedback <a recent PR number>` from a repo. `--help` through the `git` subcommand form hits a man-page error on the minimized pod image, which is git, not a broken tool; use `git-land --help` with the hyphen.
-7. **Nothing leaked into a repo:** `git status --short` in each repo you touched is clean, and none of the skill names appear in any repo's `.claude/skills/`.
+7. **Nothing leaked into a repo:** `git status --short` in each repo you touched is clean, and none of the skill names appear in any repo's `.claude/skills/` or `.agents/skills/`.
 
 Then `rm -rf /tmp/claude-config-src /tmp/git-tools-src`.
 
@@ -161,10 +163,10 @@ Also worth stating plainly: without git-tools, `land` and `todo` are inert and t
 
 ## Updating later
 
-No symlinks means no automatic propagation, so picking up upstream changes is a re-run: type `/wire-up` in any pod session and this file is followed again from the top. Steps 1 to 3 re-clone, copy the changed skills and tools over the old ones and delete the ones the repo no longer has; step 5 puts the result in `~/.claude`. As always, the updated skills are callable in the next session, not the one that ran it.
+No symlinks means no automatic propagation, so picking up upstream changes is a re-run: type `/wire-up` in a Claude session or `$wire-up` in a Codex session, in any pod, and this file is followed again from the top. Steps 1 to 3 re-clone, copy the changed skills and tools over the old ones and delete the ones the repo no longer has; step 5 puts the result in `~/.claude` and `~/.agents`. As always, the updated skills are callable in the next session, not the one that ran it.
 
-To edit a skill for yourself, edit it under `/mnt/personal/claude/skills/` and re-run `workspace-utils dotfiles`; the `~/.claude` copy is disposable. That edit does not survive the next `/wire-up`, which copies the repo's version over it.
+To edit a skill for yourself, edit it under `/mnt/personal/claude/skills/` and re-run `workspace-utils dotfiles`; the copies in `~/.claude` and `~/.agents` are disposable. That edit does not survive the next `/wire-up`, which copies the repo's version over it.
 
 ## Report
 
-Say which skills and tools were copied, which were deleted because the repo no longer has them, that the dotfiles script was created or extended, what the verification showed, and that a new session is needed before the skills are callable. List the conflicts above last, as decisions waiting on the user.
+Say which skills and tools were copied, which were deleted because the repo no longer has them, that the dotfiles script was created or extended, what the verification showed for each runtime, and that a new Claude or Codex session is needed before the skills are callable. List the conflicts above last, as decisions waiting on the user.
