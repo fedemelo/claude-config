@@ -1,0 +1,5 @@
+interface:
+  display_name: "Write a review comment"
+  short_description: "Turn one review finding into the comment its author reads"
+policy:
+  allow_implicit_invocation: true
