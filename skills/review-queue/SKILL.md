@@ -13,12 +13,12 @@ You never review a PR here. This session ends holding nothing but the roster of 
 Run this as it stands:
 
 ```sh
-gh pr list --search "is:open review-requested:@me sort:created-desc" --limit 20 \
+gh pr list --search "is:open draft:false review-requested:@me sort:created-desc" --limit 20 \
   --json number,url,createdAt,title \
   --template '{{printf "%-8s %-45s %-14s %s\n" "PR" "LINK" "CREATED" "TITLE"}}{{range .}}{{printf "%-8v %-45s %-14s %s\n" .number .url (.createdAt | timeago) .title}}{{end}}'
 ```
 
-`--search` goes through the search API, which orders by best match unless told otherwise, so `sort:created-desc` is what makes "the 20 most recent" true rather than an arbitrary 20 of them. The command is scoped to the current repo by `gh pr list` itself.
+`--search` goes through the search API, which orders by best match unless told otherwise, so `sort:created-desc` is what makes "the 20 most recent" true rather than an arbitrary 20 of them. `draft:false` leaves out drafts, which are not ready for review even when someone is already requested on them. The command is scoped to the current repo by `gh pr list` itself.
 
 Nothing in the list means nothing is waiting on you. Say so and stop; do not open a space to confirm it.
 
@@ -91,7 +91,7 @@ Say that is what happened and why. Never review the PRs here instead: several re
 
 ## Spaces you are done with
 
-A PR that is no longer in the list no longer wants your review: you reviewed it, or it closed. Its space is now clutter.
+A PR that is no longer in the list no longer wants your review: you reviewed it, it closed, or it went back to draft. Its space is now clutter.
 
 Take every `review-<n>` space for an `<n>` absent from the list — workspaces in the `Local Review` group in devspaces, sessions in `claude agents --json --all` elsewhere — and hand them back for you to delete. Name the workspaces in devspaces; print one line each elsewhere:
 
