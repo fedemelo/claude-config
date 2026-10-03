@@ -1,7 +1,7 @@
 # Skills the model may not invoke on its own; you have to type the slash command.
 #
 # The default here is the opposite of the usual one: a skill is model-invocable unless it
-# is named below. These eight are named because each mutates something outside the working
+# is named below. These are named because each mutates something outside the working
 # tree, so an invocation the user did not ask for costs more than a round trip. `sync`
 # force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
 # `wire-up` pulls two repos and rewires the whole machine's setup, and `review-rounds` spends
