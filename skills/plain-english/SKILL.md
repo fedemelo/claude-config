@@ -12,7 +12,9 @@ Sentences and words:
 3. Verbs over nominalizations. "This duplicates the data", not "this introduces duplication of the data".
 4. One idea per sentence, with no clause stacked inside another. A "which", "while", "although", "given that", or an opening "Having ..." is the signal to break the sentence in two. Two short statements may be joined with a single "and", "but", or "so", and that is the whole allowance. A second join in the same sentence, or a comma that drags in a third statement, means you have written three sentences and punctuated two. Count the statements in a sentence before you keep it. You know all of them already, so the cost of holding them at once is invisible to you. The reader is the one paying it. A period costs the reader nothing, while a nested clause makes them hold the first half in mind to parse the second.
 5. No dashes. A dash between clauses is doing a period's job, and what follows it is either a sentence of its own or noise, so promote it or cut it. This covers the em dash, the en dash, and the hyphen standing in for either. Hyphens inside a compound are rule 6's business instead.
-6. Unroll hyphenated compounds unless the compound is a fixed term. Established ones stay as they are: read-only, off-by-one, type-safe, non-null. Invented ones go back into ordinary word order, so "hard-to-follow logic" becomes "logic that is hard to follow", and "a single-source-of-truth problem" becomes "this value is now stored in two places". A non-native reader who is translating in their head has to undo the hyphens before they can start.
+6. Unroll hyphenated compounds unless the compound is a fixed term. Established ones stay as they are: read-only, off-by-one, type-safe, non-null. Invented ones go back into ordinary word order, so "hard-to-follow logic" becomes "logic that's hard to follow", and "a single-source-of-truth problem" becomes "this value is now stored in two places". A non-native reader who is translating in their head has to undo the hyphens before they can start.
+7. Contract wherever English allows it: don't, isn't, it's, can't, won't, there's, that's, I'd. The spelled-out form reads as a formal document, or as stress on the "not", and neither is what a message between colleagues means.
+8. Use the short forms developers already write to each other: imo, idk, afaik, iirc. Lowercase, no periods. Use one only where it stands in for the phrase you'd write anyway, so "idk if this runs in a job" replaces "I don't know whether", and "imo" can replace "I think". Ones that carry no meaning stay out, since they're padding in a shorter shape: tbh, fwiw, btw, lol.
 
 No fluff. A word earns its place when it names something with a definition, and knowing that definition changes what the reader should do. Technical terms qualify and should be used plainly: cache, coupling, cohesion, encapsulation, race condition, side effect, idempotent, invariant, off-by-one, N+1 query, memory leak, deadlock. These do not:
 
@@ -31,10 +33,10 @@ Keep the reader's memory free:
 When the text speaks to a person:
 
 1. Never use the imperative. Not "move this to the service", not "remove the cast", not "extract this into a helper". An order leaves the reader nothing to answer.
-2. When something is wrong, open with "I think". It says the reasoning is done and the conclusion stands, while leaving the reader room to show you otherwise: "I think this breaks when the list is empty".
+2. When something is wrong, open with "I think" or "imo". It says the reasoning is done and the conclusion stands, while leaving the reader room to show you otherwise: "I think this breaks when the list is empty".
 3. When offering an alternative rather than correcting an error, use "we could" or "we might": "we could pass the id in instead".
 4. A question does the same work and is usually shorter. "Why not pass the id in?" is a complete message.
-5. Soften the stance, never the claim. Where a sentence opens with "I think", that is the hedge it gets, so nothing else is stacked on top. Never "I think this might possibly break".
+5. Soften the stance, never the claim. Where a sentence opens with "I think" or "imo", that's the hedge it gets, so nothing else is stacked on top. Never "I think this might possibly break".
 6. State the case once, and never argue with the reader. "This is exactly what gets here" and "this will in fact fail" answer an objection nobody has made yet, and the insistence reads as pleading. Drop "exactly", "in fact", "actually", "clearly", "definitely", "notably", and "do note that". The claim is already in the sentence.
 
 Do not read as AI-written:
@@ -51,7 +53,7 @@ What this looks like. Before:
 
 After:
 
-> This only works inside a request. In a background job there is no session, so the tenant id is null and the planner crashes. I think the tenant id should be an argument instead.
+> This only works inside a request. In a background job there's no session, so the tenant id is null and the planner crashes. imo the tenant id should be an argument instead.
 
 Applying this: invoked directly, rewrite the given text against these rules and return it. Referenced from another skill, apply it to every part of the output that a person other than the user will read. It governs prose only, never code, identifiers, quoted text, or command output.
 
