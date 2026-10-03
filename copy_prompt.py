@@ -44,6 +44,7 @@ NAMED_ONLY = {
     "sync": "SYNC GUIDELINES",
     "todo": "TODO GUIDELINES",
     "verify-replies": "VERIFY REPLIES GUIDELINES",
+    "verify-review": "VERIFY REVIEW GUIDELINES",
     "wire-up": "WIRE UP GUIDELINES",
 }
 
