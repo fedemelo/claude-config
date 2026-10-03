@@ -107,7 +107,7 @@ What a comment that fails all of this looks like:
 
 The same finding, postable:
 
-> I think the full OCR text of a large document will not fit the model's input, so this fallback breaks too. We could cut the text down to a share of the model's limit before sending it. We already do that for payables.
+> I think the full OCR text of a large document won't fit the model's input, so this fallback breaks too. We could cut the text down to a share of the model's limit before sending it. We already do that for payables.
 
 Everything dropped was true: the page count, the character limit, the name of the error, the helper and the file it lives in, and the two dashes holding the sentences together. None of it changes what the author does next, and all of it belongs in the reasoning above.
 
