@@ -24,15 +24,19 @@ Nothing in the list means nothing is waiting on you. Say so and stop; do not ope
 
 ## A space per PR
 
-One space each, and never a review in this one. What a space is depends on where you are running; take the first row that matches and follow only it:
+One space each, and never a review in this one. What a space is depends on where you are running, and the mechanisms have nothing in common, so each one is a file of its own. Work out the environment by the [[environment]] rule, take the first row that matches, and read only that file:
 
-| Where you are | What to open | How |
+| Where you are | What to open | Procedure |
 | --- | --- | --- |
-| A devspaces pod, which has a `devspaces` executable on `PATH` | A devspaces workspace, in the `Local Review` group | [In devspaces](#in-devspaces) |
-| Anywhere else with the `claude` CLI | A background session | [Where the claude CLI is local](#where-the-claude-cli-is-local) |
-| Neither, e.g. Codex or a cloud session | Nothing; print a line to paste | [Where there is no local claude CLI](#where-there-is-no-local-claude-cli) |
+| The `devspaces` environment | A devspaces workspace, in the `Local Review` group | `targets/devspaces.md` |
+| Any other environment, with the `claude` CLI on `PATH` | A background session | `targets/local-cli.md` |
+| Any other environment, without it, as in Codex or a cloud session | Nothing; print a line to paste | `targets/no-local-cli.md` |
+
+The CLI is the second question, asked only once the first has settled that this is not a pod: `command -v claude`.
 
 **There is no fallback.** The row follows from the environment, not from how well its mechanism cooperates. If the one you landed on does not work, stop, name what you ran and what it said, and report which PRs got a space and which did not. Never drop to the row below, and never review a PR here instead. A pod that opened background sessions because the workspaces were harder is a pod where the reviews are somewhere you will not think to look.
+
+Nothing outside the chosen file applies. Read it in full before acting on any part of it.
 
 Whichever row you land on, these hold:
 
@@ -42,34 +46,9 @@ Whichever row you land on, these hold:
 - **`/local-review` and nothing else.** Never `/review-loop`, which addresses and pushes; the review is yours to act on.
 - **Never attach to a space you opened, read its output, or wait on it.** Switch to it yourself when you want the review.
 
-### In devspaces
-
-Each PR gets its own devspaces workspace, and every one of those workspaces is filed in the group named exactly `Local Review`. Both halves are the point of this path: a workspace per PR keeps the checkouts from colliding, and the group is what keeps eight reviews out of the groups you work in. File each workspace in that group as you create it, rather than somewhere else to be moved later.
-
-Take the commands from the pod's own `devspaces` CLI rather than from memory, since its flags are free to change: read its help, then use whatever it offers for listing groups, creating a group, creating a workspace, filing that workspace in a group, listing the workspaces in one, and giving a new workspace a starting prompt. Seed each one with `/local-review <url>`, so the review is running when you arrive.
-
-Find the group before creating anything. List the groups and look for one named exactly `Local Review`. If it exists, file every workspace in it, even when it is empty; create the group only when none has that name. A second `Local Review` group splits the queue in two, and the reviews filed in the new one are the ones you will not find. If more than one group already has that name, stop and report them all, as above, rather than choosing one.
-
-Then read the workspaces already in that group. One named for a PR in the list means that review is already queued, so leave it as it is — a second workspace for the same PR is the duplicate this step exists to prevent, and the one already there may hold a review you have not read.
-
-If the CLI will not do one of those things, that is the end of this path: stop and report it, as above. No worktrees, no background sessions, no reviews here.
-
-### Where the claude CLI is local
-
-One background session each:
-
-```sh
-claude --bg -n "review-<n>" --permission-mode auto "/local-review <url>"
-```
-
-- `--bg` returns immediately with a short id, so opening eight of these costs eight lines here and nothing else. The session inherits this working directory, so it starts in the right repo.
-- `--permission-mode auto` because a background session in manual mode stalls on its first `gh` call, waiting for someone to switch to it and approve.
-
-`claude agents --json --all` is where you check for an existing `review-<n>` session.
-
 ### Reporting back
 
-This is the report format for both paths above, devspaces and the local CLI. It does not apply to the Codex path below, which keeps its own. No table: one block per PR, in the same newest-first order as the list, and nothing else surrounding it. For each PR:
+This is the report format wherever spaces were opened. The file that opens none keeps its own, and says so. No table: one block per PR, in the same newest-first order as the list, and nothing else surrounding it. For each PR:
 
 ```
 #<n>: <title> (<created>)
@@ -77,30 +56,18 @@ This is the report format for both paths above, devspaces and the local CLI. It 
     <url>
 ```
 
-"How to reach it" is the workspace's name in devspaces, and `claude attach <id>` with the short id `claude --bg` returned elsewhere. A PR skipped because a `review-<n>` space already existed still gets a line, pointing at that space.
-
-## Where there is no local claude CLI
-
-In Codex, or a cloud session without the CLI, `claude --bg` does not exist, and there is no way to hand a cloud session a starting prompt. Still print the list, then one line per PR for you to paste into a space of your own:
-
-```
-/local-review https://github.com/<owner>/<repo>/pull/<n>
-```
-
-Say that is what happened and why. Never review the PRs here instead: several reviews in one context is the thing this skill is built to prevent, and it fails quietly, by writing each review in the shadow of the last one.
+The target file you read says what goes in "how to reach it". A PR skipped because a `review-<n>` space already existed still gets a line, pointing at that space.
 
 ## Spaces you are done with
 
 A PR that is no longer in the list no longer wants your review: you reviewed it, it closed, or it went back to draft. Its space is now clutter.
 
-Take every `review-<n>` space for an `<n>` absent from the list — workspaces in the `Local Review` group in devspaces, sessions in `claude agents --json --all` elsewhere — and hand them back for you to delete. Name the workspaces in devspaces; print one line each elsewhere:
-
-```sh
-claude rm <id>
-```
+Take every `review-<n>` space for an `<n>` absent from the list, enumerated the way the target file you read says, and hand them back for you to delete.
 
 Name them; never delete one. A review you have not read yet is not yours to throw away.
 
 ## What to report
 
-Where you opened spaces, use the block format under "Reporting back" above for the list and the spaces you opened, plus the spaces to delete from the section above. In Codex or a cloud session without the CLI, report the list as the command printed it, the `/local-review` lines to paste, and the spaces to delete. Nothing about any PR's contents, either way: you have not read one.
+Where you opened spaces, use the block format under "Reporting back" above, for the list and the spaces you opened, plus the spaces to delete from the section above. Where the target file keeps its own report, follow that file. Nothing about any PR's contents, either way: you have not read one.
+
+If you cannot read files here (this skill was pasted as a prompt rather than loaded), say so and ask the user for the target file, naming the one you need. Do not reconstruct the procedure from memory.

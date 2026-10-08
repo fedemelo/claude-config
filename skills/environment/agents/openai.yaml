@@ -1,0 +1,5 @@
+interface:
+  display_name: "Environment rules"
+  short_description: "Which kind of environment this session runs in, a devspaces pod or a machine you own"
+policy:
+  allow_implicit_invocation: true

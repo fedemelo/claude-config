@@ -25,6 +25,7 @@ SKILLS_DIR = Path(__file__).resolve().parent / "skills"
 # bury the task in instructions for another one.
 INCLUDED = {
     "comment-hygiene": "COMMENT HYGIENE STANDARD",
+    "environment": "ENVIRONMENT RULES",
     "plain-english": "PLAIN ENGLISH STANDARD",
     "pr-description": "PR DESCRIPTION STANDARD",
     "pr-target": "PR TARGET RULES",

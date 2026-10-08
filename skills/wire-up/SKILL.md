@@ -4,7 +4,7 @@ description: Wires an environment's Claude and Codex setup up to date, following
 disable-model-invocation: true
 ---
 
-Bring this environment's setup up to date: the skills, the hooks, `CLAUDE.md`, the settings entries, and the `git` subcommands the skills drive.
+Bring this environment's setup up to date: the skills, the `git` subcommands they drive, and whatever else this kind of environment's own procedure covers. Which parts of a setup are yours to touch is itself one of the things that differs, so that is the target file's business rather than this one's.
 
 **How that is done depends on the environment, and the procedures are not interchangeable.** On a machine you own, the two repos install themselves through symlinks and their own installers. In an ephemeral pod there is no persistent `~`, symlinked skills silently fail to load, and running those installers damages a working setup. Applying the wrong one leaves an environment that looks installed and is not.
 
@@ -12,14 +12,14 @@ So this skill only routes. Work out which environment you are in, read the one f
 
 ## Pick the target
 
-| Target | Procedure | It is this one when |
-|---|---|---|
-| A machine you own | `targets/owned-machine.md` | Your own laptop or desktop, or any host with a persistent home directory that you administer. |
-| A devspaces pod | `targets/devspaces.md` | An ephemeral, prompt-seeded devspaces workspace. |
+Work out which environment this is by the [[environment]] rule, then read the one file for it:
 
-Detect it rather than asking, when the environment answers plainly. A devspaces pod has all of `/mnt/personal`, `/etc/claude-code/`, and a `devspaces` executable on `PATH`; any host with none of those is a machine you own.
+| Environment | Procedure |
+|---|---|
+| `owned-machine` | `targets/owned-machine.md` |
+| `devspaces` | `targets/devspaces.md` |
 
-If the signals disagree — some present, some not — that is a pod whose image has moved, or a host that resembles one. **Stop and ask the user which procedure to follow.** Do not guess: the cost of guessing wrong is a broken setup on a machine you cannot reset, and the question costs one round trip.
+Where that rule says to stop and ask, stop and ask. Guessing wrong here leaves a broken setup on a machine you cannot reset.
 
 Nothing outside the chosen file applies. Read it in full before acting on any part of it, then report as it says.
 
