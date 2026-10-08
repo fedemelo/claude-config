@@ -33,7 +33,7 @@ of every submitted review, and conversation comments. A review body is the most 
 of the three, since nothing about it looks like an open comment, and it is where a point with no
 thread to answer it ends up. Each point carries an id (`R1`, `T1`, `C1`) to name in your findings,
 and the header prints the PR number that the commands below need. If `git-review-feedback` is not
-installed, a hook blocks it and says so; report that rather than rebuilding it out of raw `gh`
+installed, report that rather than rebuilding it out of raw `gh`
 calls, since that is how a source gets dropped.
 
 2. The code as it stands now, which is the only thing that settles whether a reply is true. Fetch

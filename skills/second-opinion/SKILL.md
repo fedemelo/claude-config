@@ -6,7 +6,7 @@ disallowed-tools: Edit Write NotebookEdit
 
 Someone commented on a pull request and the user wants to know what you make of it. Give a real opinion on whether the comment is right, grounded in the code rather than in the comment's own confidence.
 
-Answering is the whole job. Never modify code, never commit, never post, reply, react, or resolve anything, and never draft a reply unless the user asks for one. Fixing the comment in code is a different task and is not this one.
+Answering the user is the whole job. Never modify code, never commit, never post, reply, react, or resolve anything, and never draft a reply unless the user asks for one. Fixing the comment in code is a different task and is not this one.
 
 ## Which PR
 
@@ -33,7 +33,7 @@ git review-feedback <pr> --all
 
 `--all` because the comment being asked about may sit in a thread somebody already resolved.
 Every point carries an id (`R1`, `T1`, `C1`), which is how to name the one you settled on. If
-`git-review-feedback` is not installed, a hook blocks it and says so; report that rather than
+`git-review-feedback` is not installed, report that rather than
 rebuilding it out of raw `gh` calls, which would risk answering about the wrong comment because
 the right one was never fetched.
 

@@ -43,7 +43,7 @@ The review's own `body` from the step above counts too. A summary body often hol
 git review-feedback <pr> --all --json
 ```
 
-`--all` because a thread the author resolved still holds the comment being checked. Read the user's comments together with any reply in the same thread, since a reply can add a fact the comment didn't have. Judge the comment, not the reply. If `git-review-feedback` is not installed, a hook blocks it and says so; report that rather than rebuilding it out of raw `gh` calls.
+`--all` because a thread the author resolved still holds the comment being checked. Read the user's comments together with any reply in the same thread, since a reply can add a fact the comment didn't have. Judge the comment, not the reply. If `git-review-feedback` is not installed, report that rather than rebuilding it out of raw `gh` calls.
 
 3. The code at the reviewed commit and at the current head. Fetch the head last, so `FETCH_HEAD` names it:
 

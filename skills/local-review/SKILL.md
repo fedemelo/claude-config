@@ -44,7 +44,7 @@ git review-feedback <pr> --all
 exactly what this step is for. The output covers all three places feedback lives: inline threads,
 the body of every submitted review, and conversation comments. A review body is the one most
 easily missed, since nothing about it looks like a comment. If `git-review-feedback` is not
-installed, a hook blocks it and says so; report that rather than rebuilding it out of raw `gh`
+installed, report that rather than rebuilding it out of raw `gh`
 calls, which would leave you repeating a point already made somewhere you did not look.
 
 ## Does it fix the ticket? (only when ticket context is provided)

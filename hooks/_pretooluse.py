@@ -2,8 +2,9 @@
 
 Imported, never run, so it carries no shebang and is not executable. A hook imports it as a
 sibling module, which resolves because Python sets `sys.path[0]` to the directory the script
-really lives in rather than the one it was invoked through: the symlink in ~/.claude/hooks
-reaches back into this repo, so the module can never be a stale copy of itself.
+really lives in rather than the one it was invoked through. So this file has to travel with the
+hooks and land beside them, however they got there: linked from this repo, or copied somewhere
+wholesale. Install a hook without it and the hook dies on import.
 """
 
 import json

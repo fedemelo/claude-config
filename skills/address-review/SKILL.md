@@ -38,7 +38,7 @@ Feedback on a PR lives in three places that no two of them overlap: inline revie
 body attached to a submitted review, and conversation comments. No single `gh` command returns
 all three, so fetching them by hand is how a review gets addressed in part while looking
 complete, and the body attached to an approval is what goes missing. This returns all three from
-one query. If `git-review-feedback` is not installed, a hook blocks it and says so; report that
+one query. If `git-review-feedback` is not installed, report that
 to the caller rather than rebuilding it out of raw `gh` calls, since that is the very thing that
 drops a source.
 

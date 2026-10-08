@@ -24,8 +24,10 @@ def veto(command, _payload):
         executable = f"git-{tool}"
         if pattern.search(command) and shutil.which(executable) is None:
             return (
-                f"Blocked: '{executable}' is not installed on this machine (not found on PATH). "
-                f"Reinstall it at ~/.local/bin/{executable} before retrying."
+                f"Blocked: '{executable}' is not installed here (not found on PATH). "
+                f"Report that to the user and stop. Do not replicate the command with raw "
+                f"gh or git calls, and do not install anything yourself: where git-tools "
+                f"belongs differs by environment, and the wire-up skill is what knows."
             )
     return None
 
