@@ -41,7 +41,6 @@ NAMED_ONLY = {
     "review-queue": "REVIEW QUEUE GUIDELINES",
     "review-rounds": "REVIEW ROUNDS GUIDELINES",
     "second-opinion": "SECOND OPINION GUIDELINES",
-    "sync": "SYNC GUIDELINES",
     "todo": "TODO GUIDELINES",
     "verify-replies": "VERIFY REPLIES GUIDELINES",
     "verify-review": "VERIFY REVIEW GUIDELINES",

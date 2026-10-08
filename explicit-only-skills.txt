@@ -2,9 +2,9 @@
 #
 # The default here is the opposite of the usual one: a skill is model-invocable unless it
 # is named below. These are named because each mutates something outside the working
-# tree, so an invocation the user did not ask for costs more than a round trip. `sync`
-# force-pushes, so an unasked-for run can also rewrite a branch someone else is reading,
-# `wire-up` pulls two repos and rewires the whole machine's setup, and `review-rounds` spends
+# tree, so an invocation the user did not ask for costs more than a round trip. `land` opens
+# and merges a PR, `wire-up` pulls two repos and rewires the whole machine's setup, and
+# `review-rounds` spends
 # rounds of agents committing and pushing to a branch until a review approves it, and
 # `review-queue` starts a session per PR waiting on your review.
 #
@@ -25,6 +25,5 @@ land
 open-pr
 review-queue
 review-rounds
-sync
 todo
 wire-up
