@@ -12,7 +12,7 @@ Run the commands below as written rather than devising your own. Each is the che
 
 ## Resolve the window and the repo
 
-1. The cutoff date is the argument. Accept `YYYY-MM-DD` or relative wording ("last Friday", "3 days ago", "the last 5 days"), resolving relative wording to a concrete date with `date` (`date +%F` for today, `date -v-<n>d +%F` for a number of days back). With no argument, use 7 days ago.
+1. The cutoff date is the argument. Accept `YYYY-MM-DD` or relative wording ("last Friday", "3 days ago", "the last 5 days"), resolving relative wording to a concrete date: `date +%F` for today, and `python3 -c 'import datetime; print(datetime.date.today() - datetime.timedelta(days=<n>))'` for a number of days back. With no argument, use 7 days ago.
 2. "The last N days" means N days before today, a window spanning N+1 calendar days once today is counted. Prefer that slightly wide window to risking a dropped day, and let the header show the resolved date.
 3. The window runs from the start of the cutoff day through now, so the cutoff day itself always counts.
 4. Anchor that start to the user's timezone: read the offset with `date +%z` and write it into the query as `created:<cutoff>T00:00:00-0500..*`. A bare date is read as UTC, which for a negative offset pulls in the previous evening's work and files it under the wrong day. Inline the literal offset rather than substituting the command inside the query.

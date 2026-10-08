@@ -15,7 +15,7 @@ The name says daily, but the window is whatever the user asks for. The point is 
 
 Follow the [[work-summary]] skill for resolving the window and the repo, for the three fetch queries, and for summarizing each PR in one line. Four differences:
 
-1. With no argument the cutoff is two days back (`date -v-2d +%F`), not seven, so the window runs from the day before yesterday through now. That is a day wider than a strictly daily post, on purpose: an update written late one day and early the next would otherwise drop the work in between. An argument overrides the default and is resolved exactly as that skill says.
+1. With no argument the cutoff is two days back (`python3 -c 'import datetime; print(datetime.date.today() - datetime.timedelta(days=2))'`), not seven, so the window runs from the day before yesterday through now. That is a day wider than a strictly daily post, on purpose: an update written late one day and early the next would otherwise drop the work in between. An argument overrides the default and is resolved exactly as that skill says.
 2. Add `url` to each query's `--json` field list and print it with `{{.url}}` on the head line of each template, since the bullets link to the PRs. Change nothing else about the commands.
 3. Skip the review and CI state. A reviewer count and a check status answer "where is my PR", which is a question about the user rather than about the work, and two of the bad examples below are exactly that kind of bullet.
 4. Skip the closed-without-merging investigation, unless dropping the PR is itself news for the team, meaning an approach was abandoned or replaced. Then the stated reason is the bullet, and the commands for finding it are in that skill.
