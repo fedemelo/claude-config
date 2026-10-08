@@ -35,7 +35,9 @@ git clone --depth=1 https://github.com/fedemelo/claude-config /tmp/claude-config
 git clone --depth=1 https://github.com/fedemelo/git-tools    /tmp/git-tools-src
 ```
 
-Scratch, not a permanent checkout, and nothing in them is executed. Delete both when finished so no one later mistakes them for an install.
+Scratch, not a permanent checkout. Delete both when finished so no one later mistakes them for an install.
+
+Nothing in either clone is installed, and the only thing run out of one is `scripts/skills_for.py` in step 2, which reads frontmatter and prints names. That is not a new thing to trust: this procedure is itself read from the same clone, per the paragraph below.
 
 The clone also carries the current version of this procedure. If `/tmp/claude-config-src/skills/wire-up/targets/devspaces.md` differs from the copy you are reading, the installed copy is out of date: read the cloned one and follow that instead.
 
@@ -43,10 +45,16 @@ The clone also carries the current version of this procedure. If `/tmp/claude-co
 
 ```sh
 mkdir -p /mnt/personal/claude/skills
-cp -a /tmp/claude-config-src/skills/. /mnt/personal/claude/skills/
+python3 /tmp/claude-config-src/scripts/skills_for.py devspaces /tmp/claude-config-src/skills \
+  > /tmp/claude-skills-here
+while IFS= read -r name; do
+  cp -a "/tmp/claude-config-src/skills/$name" /mnt/personal/claude/skills/
+done < /tmp/claude-skills-here
 ```
 
-Every skill, with no exceptions to keep track of, and `cp -a` to keep the trees and the file modes. `wire-up` is one of them: it comes with its `targets/` directory, so a later refresh is one `/wire-up` and no commands typed by hand. Its `SKILL.md` only chooses a file to read. It reads the pod signals, all of which hold here, so it reads this file and never the owned-machine one, and the choosing itself runs nothing. The copy of the skill being followed right now is overwritten by this step, which changes nothing, since this session has already read it.
+Every skill this environment gets, which is every skill that does not declare itself scoped to a different one, and `cp -a` to keep the trees and the file modes. The list comes from `skills_for.py` rather than from reading the frontmatter here, because `install.sh` selects with the same script on a machine you own: two readers of that key would eventually disagree about which skills a pod gets. Keep `/tmp/claude-skills-here` until the deletion below has run, which reads it.
+
+`wire-up` is one of them: it comes with its `targets/` directory, so a later refresh is one `/wire-up` and no commands typed by hand. Its `SKILL.md` only chooses a file to read. It reads the pod signals, all of which hold here, so it reads this file and never the owned-machine one, and the choosing itself runs nothing. The copy of the skill being followed right now is overwritten by this step, which changes nothing, since this session has already read it.
 
 To refresh a single skill rather than all of them, name its directory instead: `cp -a /tmp/claude-config-src/skills/commit /mnt/personal/claude/skills/`.
 
@@ -54,42 +62,42 @@ The same share serves both runtimes. Claude reads `~/.claude/skills/` and Codex 
 
 Skip `CLAUDE.md`, `hooks/` and `settings.json.example` from claude-config. Those are global-instruction and harness changes, not skills; see the conflicts below.
 
-**Then delete the ones upstream no longer has.** A copy only adds, so a skill deleted or renamed in the repo stays on the share and gets copied back into both runtimes on every start. Remove from the share whatever the clone no longer has, and remove the same names from `~/.claude/skills` and `~/.agents/skills`, which step 5 will not do for you:
+**Then delete whatever the list above does not name.** A copy only adds, so a skill the repo no longer has, or no longer gives this environment, stays on the share and gets copied back into both runtimes on every start. Remove those from the share, and remove the same names from `~/.claude/skills` and `~/.agents/skills`, which step 5 will not do for you:
 
 ```sh
 for dir in /mnt/personal/claude/skills/*/; do
   name="$(basename "$dir")"
-  [ -d "/tmp/claude-config-src/skills/$name" ] && continue
+  grep -qxF "$name" /tmp/claude-skills-here && continue
   rm -rf "/mnt/personal/claude/skills/$name" "$HOME/.claude/skills/$name" "$HOME/.agents/skills/$name"
   echo "removed $name"
 done
 ```
 
-A rename is a delete plus a copy, so this covers both. It only touches names the share already holds, so it leaves anything the pod image put in either skills directory alone. Keep what it prints; the report names it.
+Comparing against the list, not against the clone's directories, is what makes one rule cover three cases: a skill deleted upstream, a skill renamed, and a skill that still exists but has since been scoped to another environment. It only touches names the share already holds, so it leaves anything the pod image put in either skills directory alone. Keep what it prints; the report names it.
 
 ### 3. Copy the git tools
 
 ```sh
 mkdir -p /mnt/personal/claude/git-tools/bin
-cp -a /tmp/git-tools-src/bin/git-land            /mnt/personal/claude/git-tools/bin/
-cp -a /tmp/git-tools-src/bin/git-todo            /mnt/personal/claude/git-tools/bin/
 cp -a /tmp/git-tools-src/bin/git-review-feedback /mnt/personal/claude/git-tools/bin/
 ```
 
-These are standalone scripts with no install step. `~/.local/bin` is already on `PATH` in the pod image, and git resolves an executable named `git-<name>` there as the subcommand `git <name>`, so copying them is the whole installation — no config key, nothing to set. Keep the executable bit (`cp -a` does); a copy that loses it fails as "command not found".
+**One tool, not three.** `git-land` and `git-todo` back the `land` and `todo` skills, which are scoped to a machine the user owns and are never installed here, so copying them would leave a pod holding tools with nothing to call them. `git-review-feedback` is the one the review skills are built on, and those do run here.
+
+It is a standalone script with no install step. `~/.local/bin` is already on `PATH` in the pod image, and git resolves an executable named `git-<name>` there as the subcommand `git <name>`, so copying it is the whole installation: no config key, nothing to set. Keep the executable bit (`cp -a` does); a copy that loses it fails as "command not found".
 
 Apply removals here too, for the same reason as the skills:
 
 ```sh
 for f in /mnt/personal/claude/git-tools/bin/*; do
   name="$(basename "$f")"
-  [ -e "/tmp/git-tools-src/bin/$name" ] && continue
+  [ "$name" = "git-review-feedback" ] && continue
   rm -f "/mnt/personal/claude/git-tools/bin/$name" "$HOME/.local/bin/$name"
   echo "removed $name"
 done
 ```
 
-If `/tmp/git-tools-src/bin` holds a script the lines above do not name, report it rather than copying it. Whether a new tool belongs in a pod is the user's call.
+Comparing against the one name a pod gets, rather than against the clone, is what clears a `git-land` or `git-todo` left behind by an earlier wire-up that still copied them. If `/tmp/git-tools-src/bin` holds some other script, report it rather than copying it. Whether a new tool belongs in a pod is the user's call.
 
 Optionally also copy `hooks/commit-msg` and `ignore` onto the share for reference, but **do not wire either one** — each needs a global `git config` key, and the hook conflicts with pod policy. Leave `core.hooksPath` and `core.excludesFile` unset.
 
@@ -115,9 +123,10 @@ if [ -d /mnt/personal/claude/commands ]; then
   cp -a /mnt/personal/claude/commands/. "$HOME/.claude/commands/"
 fi
 
-# git-tools subcommands (git land / git todo / git review-feedback), which the
-# land, todo and PR-review skills call. ~/.local/bin is already on PATH and git
-# finds a `git-<name>` executable there as the subcommand `git <name>`.
+# git review-feedback, which the PR-review skills are built on. It is the only
+# git-tools subcommand a pod gets: git land and git todo back skills scoped to
+# an owned machine and never installed here. ~/.local/bin is already on PATH
+# and git finds a `git-<name>` executable there as the subcommand `git <name>`.
 if [ -d /mnt/personal/claude/git-tools/bin ]; then
   mkdir -p "$HOME/.local/bin"
   cp -a /mnt/personal/claude/git-tools/bin/. "$HOME/.local/bin/"
@@ -147,7 +156,7 @@ Check, do not assume:
 3. **Deletions took:** every name the removal loops printed is gone from `/mnt/personal/claude/skills`, `~/.claude/skills`, `~/.agents/skills`, `/mnt/personal/claude/git-tools/bin` and `~/.local/bin`.
 4. **Frontmatter matches directory:** each `SKILL.md`'s `name:` equals its directory name, or neither runtime will load it.
 5. **References resolve:** every `[[name]]` in a copied skill names a skill that was also copied. Missing ones are dangling.
-6. **Tools resolve:** `command -v git-land git-todo git-review-feedback`, then a real read, e.g. `git review-feedback <a recent PR number>` from a repo. `--help` through the `git` subcommand form hits a man-page error on the minimized pod image, which is git, not a broken tool; use `git-land --help` with the hyphen.
+6. **The one tool resolves, and only it:** `command -v git-review-feedback` finds it, then a real read, e.g. `git review-feedback <a recent PR number>` from a repo. `--help` through the `git` subcommand form hits a man-page error on the minimized pod image, which is git, not a broken tool; use `git-review-feedback --help` with the hyphen. `command -v git-land git-todo` must find **nothing**: either one resolving means an earlier wire-up copied it and the removal loop has not cleared it.
 7. **Nothing leaked into a repo:** `git status --short` in each repo you touched is clean, and none of the skill names appear in any repo's `.claude/skills/` or `.agents/skills/`.
 
 Then `rm -rf /tmp/claude-config-src /tmp/git-tools-src`.
@@ -157,9 +166,9 @@ Then `rm -rf /tmp/claude-config-src /tmp/git-tools-src`.
 Both of these are real disagreements between the user's conventions and pod policy. Name them and let the user decide; do not quietly pick a side.
 
 - **Commit attribution.** The `commit` skill forbids a `Co-Authored-By` trailer, and git-tools' `commit-msg` hook strips one. The pod's managed settings (`/etc/claude-code/managed-settings.json`, key `attribution.commit`) inject exactly that trailer, and organization policy requires it. Managed settings outrank a user-scope skill. Installing the hook would also rewrite commit messages in **every** repo in the pod, since `core.hooksPath` is global.
-- **Repo-specific delivery skills.** A repo may mandate its own PR workflow — `canals` tells every agent to use `/canals:ship-it` — which overlaps `commit`, `open-pr` and `sync`. Both sets are installed; which wins is the user's call, per repo.
+- **Repo-specific delivery skills.** A repo may mandate its own PR workflow — `canals` tells every agent to use `/canals:ship-it` — which overlaps `commit` and `open-pr`. Both sets are installed; which wins is the user's call, per repo.
 
-Also worth stating plainly: without git-tools, `land` and `todo` are inert and the review skills (`local-review`, `address-review`, `second-opinion`, `verify-replies`) lose the `git review-feedback` read they are built on. The skills expect a hook to explain that; no hooks are installed here, so the failure is a raw `git: 'review-feedback' is not a git command`.
+Also worth stating plainly: without git-tools, the review skills (`local-review`, `address-review`, `second-opinion`, `verify-replies`, `verify-review`) lose the `git review-feedback` read they are built on, and since no hooks are installed here the failure is a bare `git: 'review-feedback' is not a git command` rather than anything that explains itself. Those skills say to report that and stop, which is the right answer either way.
 
 ## Updating later
 

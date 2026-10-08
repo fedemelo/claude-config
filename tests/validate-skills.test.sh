@@ -29,6 +29,19 @@ reports() { errors "$1" | grep -cF "$2" | tr -d ' '; }
 
 status() { python3 "$repo_root/scripts/validate_skills.py" "$1" >/dev/null 2>&1; echo $?; }
 
+# Adds a skill scoped to one environment, carrying everything the other checks ask of a skill, so
+# a case can exercise the environment rules without such a skill having to exist in the repo.
+scoped_skill() {
+  local dir="$1" name="$2" environment="$3"
+  mkdir -p "$dir/skills/$name/agents"
+  printf -- '---\nname: %s\ndescription: Does the one thing this environment can do.\nenvironment: %s\n---\n\nDo the thing.\n' \
+    "$name" "$environment" > "$dir/skills/$name/SKILL.md"
+  printf 'interface:\n  display_name: "%s"\n  short_description: "Scoped to one environment"\npolicy:\n  allow_implicit_invocation: true\n' \
+    "$name" > "$dir/skills/$name/agents/openai.yaml"
+  sed -i.bak "s|    \"wire-up\": \"WIRE UP GUIDELINES\",|    \"wire-up\": \"WIRE UP GUIDELINES\",\n    \"$name\": \"SCOPED GUIDELINES\",|" \
+    "$dir/copy_prompt.py"
+}
+
 echo "=== the repo as committed is valid ==="
 check "the real repo passes" "$(status "$repo_root")" "0"
 check "and reports nothing" "$(errors "$repo_root")" ""
@@ -184,6 +197,118 @@ d=$(fixture)
 rm -rf "$d/skills/plain-english"
 sed -i.bak '/"plain-english": "PLAIN ENGLISH STANDARD",/d' "$d/copy_prompt.py"
 check "removing the standard itself is caught" "$(reports "$d" "plain-english is required")" "1"
+rm -rf "$d"
+
+echo "=== a skill only gets the environments it declares ==="
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspace"
+check "an environment outside the three is caught" \
+  "$(reports "$d" "pod-only: environment must be one of any, owned-machine, devspaces")" "1"
+rm -rf "$d"
+
+# The failure this exists for: the installer leaves out the skills scoped elsewhere, so the file
+# behind the reference is absent and nothing says so.
+echo "=== a reference has to be installed wherever the skill referencing it is ==="
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspaces"
+printf '\nFollow [[pod-only]] as well.\n' >> "$d/skills/commit/SKILL.md"
+check "a skill running everywhere pointing at a scoped one is caught" \
+  "$(reports "$d" "commit (environment: any) references [[pod-only]] (environment: devspaces)")" "1"
+check "and it fails" "$(status "$d")" "1"
+rm -rf "$d"
+
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspaces"
+scoped_skill "$d" "laptop-only" "owned-machine"
+printf '\nFollow [[laptop-only]] as well.\n' >> "$d/skills/pod-only/SKILL.md"
+check "two skills scoped to different environments is caught" \
+  "$(reports "$d" "pod-only (environment: devspaces) references [[laptop-only]]")" "1"
+rm -rf "$d"
+
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspaces"
+printf '\nWrite it to the [[plain-english]] standard.\n' >> "$d/skills/pod-only/SKILL.md"
+check "a scoped skill may reference one that runs everywhere" "$(reports "$d" "pod-only (environment")" "0"
+rm -rf "$d"
+
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspaces"
+scoped_skill "$d" "pod-helper" "devspaces"
+printf '\nFollow [[pod-helper]] as well.\n' >> "$d/skills/pod-only/SKILL.md"
+check "two skills in the same environment may reference each other" \
+  "$(reports "$d" "pod-only (environment")" "0"
+rm -rf "$d"
+
+# The skill body is the only index of its targets/, so a rename on either side goes unnoticed
+# until somebody lands in the environment nobody tested.
+echo "=== a routing skill and its targets have to agree on which files exist ==="
+d=$(fixture)
+mv "$d/skills/wire-up/targets/devspaces.md" "$d/skills/wire-up/targets/pod.md"
+check "a target the skill still routes to but renamed on disk is caught" \
+  "$(reports "$d" "wire-up: routes to targets/devspaces.md, which does not exist")" "1"
+check "and the orphan the rename left is caught too" \
+  "$(reports "$d" "wire-up: targets/pod.md exists but the skill never routes to it")" "1"
+rm -rf "$d"
+
+d=$(fixture)
+printf 'x\n' > "$d/skills/review-queue/targets/cloud.md"
+check "a target nothing routes to is caught" \
+  "$(reports "$d" "review-queue: targets/cloud.md exists but the skill never routes to it")" "1"
+rm -rf "$d"
+
+# A router scoped to one environment is missing from the very environment it was meant to
+# identify, and nothing is left there to read its routing table and say so.
+echo "=== a skill that routes on the environment has to be installed in all of them ==="
+d=$(fixture)
+sed -i.bak 's/^disable-model-invocation: true$/disable-model-invocation: true\nenvironment: devspaces/' \
+  "$d/skills/wire-up/SKILL.md"
+check "scoping a router is caught by its own reference" \
+  "$(reports "$d" "wire-up: is environment: devspaces but references [[environment]]")" "1"
+check "and by the target it can no longer reach" \
+  "$(reports "$d" "wire-up: is environment: devspaces but carries targets/owned-machine.md")" "1"
+check "and it fails" "$(status "$d")" "1"
+rm -rf "$d"
+
+d=$(fixture)
+sed -i.bak 's/^disable-model-invocation: true$/disable-model-invocation: true\nenvironment: owned-machine/' \
+  "$d/skills/review-queue/SKILL.md"
+check "a router with no wrongly-named target is still caught by the reference" \
+  "$(reports "$d" "review-queue: is environment: owned-machine but references [[environment]]")" "1"
+rm -rf "$d"
+
+# Scoping is only wrong for a skill that routes. One that simply belongs to an environment is fine.
+d=$(fixture)
+scoped_skill "$d" "pod-only" "devspaces"
+check "a scoped skill that does not route is left alone" "$(reports "$d" "pod-only: is environment")" "0"
+rm -rf "$d"
+
+# install.sh checks that a hook named in settings exists. This is the other direction, which
+# nothing else covers: a hook added to the directory and never registered is linked and then
+# never runs, which looks exactly like a hook that ran and chose not to block.
+echo "=== every hook has to be registered in the settings the installer merges ==="
+d=$(fixture)
+printf '#!/usr/bin/env python3\n' > "$d/hooks/new-guard.py"
+check "a hook nothing registers is caught" \
+  "$(reports "$d" "settings.json.example: never registers hooks/new-guard.py")" "1"
+check "and it fails" "$(status "$d")" "1"
+rm -rf "$d"
+
+d=$(fixture)
+python3 -c "
+import json
+p = '$d/settings.json.example'
+s = json.load(open(p))
+entries = s['hooks']['PreToolUse'][0]['hooks']
+s['hooks']['PreToolUse'][0]['hooks'] = [h for h in entries if 'require-git-tools' not in h['command']]
+json.dump(s, open(p, 'w'), indent=2)"
+check "dropping a registration is caught too" \
+  "$(reports "$d" "settings.json.example: never registers hooks/require-git-tools.py")" "1"
+rm -rf "$d"
+
+# The shared module is imported by the hooks, not run as one, so it is registered nowhere.
+d=$(fixture)
+check "the imported module is not expected to be registered" \
+  "$(reports "$d" "never registers hooks/_pretooluse.py")" "0"
 rm -rf "$d"
 
 echo "=== a skill copy_prompt.py cannot title would only fail when someone runs make ==="

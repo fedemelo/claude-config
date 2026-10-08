@@ -2,6 +2,7 @@
 name: todo
 description: Files a GitHub issue with the git-todo tool, auto-assigned to the user, for lightweight personal backlog tracking.
 disable-model-invocation: true
+environment: owned-machine
 ---
 
 Run `git todo` from the current repo. Do not call `gh issue create` directly, since `git todo` wraps it with the right defaults. If `git-todo` is not installed, a hook blocks the command and says so; report that to the user instead of replicating it with `gh issue create`.

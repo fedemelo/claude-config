@@ -3,6 +3,41 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Which environment this is, by the same signals the `environment` skill states, so the installer
+# and the skills that branch agree on the answer. First, because the guard below has to decide
+# before anything on this machine has been touched.
+#
+# The two path signals are overridable, which is what lets the refusal below be tested without
+# root-owned directories, and leaves room for a pod image that moves them.
+share_dir="${CLAUDE_CONFIG_SHARE_DIR:-/mnt/personal}"
+managed_dir="${CLAUDE_CONFIG_MANAGED_DIR:-/etc/claude-code}"
+
+environment="${CLAUDE_CONFIG_ENVIRONMENT:-}"
+detected=""
+if [ -z "$environment" ]; then
+  if [ -d "$share_dir" ] && [ -d "$managed_dir" ] && command -v devspaces >/dev/null 2>&1; then
+    environment="devspaces"
+  else
+    environment="owned-machine"
+  fi
+  detected="yes"
+fi
+
+# This script is the wrong tool in a pod, and it now holds the one fact needed to say so. It
+# symlinks skills, which the runtime silently never loads there, and it writes machine-wide config
+# a pod does not own: the global-instruction slots and ~/.claude/settings.json, where the pod's own
+# policy lives. Running it leaves a setup that looks installed and is not, so it refuses.
+#
+# Only the detected case refuses. CLAUDE_CONFIG_ENVIRONMENT is a human naming the environment, and
+# overriding the guess is not the same as asking to be stopped; the tests select that way too.
+if [ "$environment" = "devspaces" ] && [ -n "$detected" ]; then
+  echo "This is a devspaces pod, where this installer is the wrong tool: symlinked skills are" >&2
+  echo "silently never loaded, and it would write machine-wide config the pod does not own." >&2
+  echo "Run /wire-up instead (\$wire-up in Codex), which follows the pod's own procedure." >&2
+  echo "To install anyway, re-run with CLAUDE_CONFIG_ENVIRONMENT=devspaces." >&2
+  exit 1
+fi
+
 hooks_dir="$HOME/.claude/hooks"
 # Claude Code reads ~/.claude/skills; Codex, Copilot and OpenCode read ~/.agents/skills. Each
 # skill is linked into both from the one directory in this repo, so there is still a single copy.
@@ -65,16 +100,36 @@ for hook in "$repo_dir"/hooks/*.py; do
   ln -sf "$hook" "$hooks_dir/$(basename "$hook")"
 done
 
+# A skill scoped to another environment is left out rather than linked. Every installed skill
+# spends its description on every session, so one that cannot run here never repays it.
+# scripts/skills_for.py is the only reader of the frontmatter key, shared with the pod procedure.
 # -sfn (not -sf): don't follow an existing dir symlink, or re-runs nest the link inside it
-for skill in "$repo_dir"/skills/*/; do
-  skill="${skill%/}"
+while IFS= read -r name; do
   for dir in "${skill_dirs[@]}"; do
-    ln -sfn "$skill" "$dir/$(basename "$skill")"
+    ln -sfn "$repo_dir/skills/$name" "$dir/$name"
   done
-done
+done < <(python3 "$repo_dir/scripts/skills_for.py" "$environment")
 
-echo "Linked hooks into ~/.claude, global instructions into ~/.claude and ~/.codex, and skills into ~/.claude/skills and ~/.agents/skills"
+# An excluded skill may still be linked from an earlier run, here or in another environment. Its
+# target exists, so the prune above leaves it: a dangling link is all that one removes. Without
+# this it stays listed as a skill that cannot run, which is the cost the exclusion exists to save.
+excluded=0
+while IFS= read -r name; do
+  excluded=$((excluded + 1))
+  removed=0
+  for dir in "${skill_dirs[@]}"; do
+    link="$dir/$name"
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$repo_dir/skills/$name" ]; then
+      rm "$link"
+      removed=1
+    fi
+  done
+  [ "$removed" -eq 0 ] || echo "Unlinked $name: it is scoped to another environment than $environment"
+done < <(python3 "$repo_dir/scripts/skills_for.py" "$environment" --excluded)
+
+echo "Linked hooks into ~/.claude, global instructions into ~/.claude and ~/.codex, and skills into ~/.claude/skills and ~/.agents/skills, for the $environment environment"
 [ "$pruned" -eq 0 ] || echo "Pruned $pruned stale link(s)"
+[ "$excluded" -eq 0 ] || echo "Left out $excluded skill(s) scoped to another environment"
 
 python3 "$repo_dir/merge_settings.py" "$repo_dir/settings.json.example" "$HOME/.claude/settings.json" "${pruned_hooks[@]+"${pruned_hooks[@]}"}"
 

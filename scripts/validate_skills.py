@@ -25,6 +25,26 @@ AUDIENCE_KEY = "audience"
 AUDIENCE_VALUES = ("user", "others")
 AUDIENCE_OTHERS = "others"
 
+# `environment: devspaces` says a skill only works in one kind of environment, so the installers
+# link it only there. The default is `any`: a skill that names no environment runs everywhere. The
+# point of the key is context rather than tidiness, since every installed skill spends its
+# description on every session, and one that cannot run here can never repay it. Neither runtime
+# reads it, as with audience and disable-model-invocation.
+ENVIRONMENT_KEY = "environment"
+ENVIRONMENT_ANY = "any"
+ENVIRONMENT_VALUES = (ENVIRONMENT_ANY, "owned-machine", "devspaces")
+
+# The concrete environments, the ones an installer can be running in. `any` describes a skill, not
+# a machine, so it is not among them.
+ENVIRONMENT_TARGETS = tuple(value for value in ENVIRONMENT_VALUES if value != ENVIRONMENT_ANY)
+
+# The skill holding the detection rule. Referencing it is what makes a skill a router.
+ENVIRONMENT_SKILL = "environment"
+
+# A skill that routes reaches its per-environment procedures as `targets/<name>.md`, and its own
+# body is the only index of them.
+TARGET_REFERENCE = re.compile(r"`targets/([a-z0-9-]+\.md)`")
+
 # Values our YAML never uses. Rejecting them keeps the hand-rolled parser below honest: a file
 # reaching for a real YAML feature fails loudly instead of being read as something else.
 UNSUPPORTED_VALUES = "[{|>&*!"
@@ -161,6 +181,41 @@ def check_no_commands(root, errors):
         errors.append("commands/ is reserved: a workflow belongs in skills/, not in a custom command")
 
 
+def check_hook_registration(root, errors):
+    """Every hook this repo installs has to be registered in the settings it merges.
+
+    install.sh links all of hooks/*.py, and checks the other direction only: that a hook named in
+    settings.json exists on disk. This is the gap that leaves. A hook added to the directory and
+    never named here is linked, never registered, and silently never runs, which looks exactly like
+    a hook that ran and declined to block. A module starting with _ is imported by the hooks rather
+    than run as one, so it is not registered anywhere.
+    """
+    hooks_dir = root / "hooks"
+    if not hooks_dir.is_dir():
+        errors.append("hooks/ is required")
+        return
+
+    settings = load_json(root / "settings.json.example", "settings.json.example", errors)
+    if settings is None:
+        return
+
+    events = settings.get("hooks")
+    commands = ""
+    if isinstance(events, dict):
+        for groups in events.values():
+            for group in groups if isinstance(groups, list) else []:
+                for hook in group.get("hooks", []) if isinstance(group, dict) else []:
+                    if isinstance(hook, dict):
+                        commands += str(hook.get("command", "")) + "\n"
+
+    for script in sorted(p.name for p in hooks_dir.glob("*.py") if not p.name.startswith("_")):
+        if script not in commands:
+            errors.append(
+                f"settings.json.example: never registers hooks/{script}, so the installer links it "
+                f"and nothing ever runs it"
+            )
+
+
 def check_marketplace(manifest, label, expected_source, errors):
     if manifest.get("name") != MARKETPLACE_NAME:
         errors.append(f"{label}: name must be {MARKETPLACE_NAME!r}")
@@ -242,7 +297,7 @@ def check_policy(path, name, should_be_explicit, frontmatter, errors):
         errors.append(f"{name}: explicit-only is {claude_explicit} but the skill is {listing} explicit-only-skills.txt")
 
 
-def check_skill(path, name, skills, explicit, renderable, audiences, errors):
+def check_skill(path, name, skills, explicit, renderable, audiences, environments, errors):
     text = (path / "SKILL.md").read_text()
     try:
         frontmatter = parse_frontmatter(text)
@@ -273,7 +328,80 @@ def check_skill(path, name, skills, explicit, renderable, audiences, errors):
         else:
             errors.append(f"{name}: {AUDIENCE_KEY} must be one of {', '.join(AUDIENCE_VALUES)}, not {audience!r}")
 
+    # Recorded for every skill, declared or not, so the reference check below can compare any two
+    # of them without caring which bothered to name an environment.
+    environment = frontmatter.get(ENVIRONMENT_KEY, ENVIRONMENT_ANY)
+    if environment in ENVIRONMENT_VALUES:
+        environments[name] = environment
+    else:
+        environments[name] = ENVIRONMENT_ANY
+        errors.append(f"{name}: {ENVIRONMENT_KEY} must be one of {', '.join(ENVIRONMENT_VALUES)}, not {environment!r}")
+
+    check_targets(path, name, text, errors)
+    check_router_scope(path, name, environments[name], text, errors)
     check_policy(path, name, name in explicit, frontmatter, errors)
+
+
+def check_targets(path, name, text, errors):
+    """A routing skill and its targets/ directory have to agree on which files exist.
+
+    The body is the only index: nothing else lists them, so a target renamed on disk leaves the
+    skill routing to a path that is not there, and one the body stopped naming is read by nobody.
+    Both fail silently, in the environment nobody tested.
+    """
+    directory = path / "targets"
+    named = set(TARGET_REFERENCE.findall(text))
+    present = {file.name for file in directory.glob("*.md")} if directory.is_dir() else set()
+
+    for missing in sorted(named - present):
+        errors.append(f"{name}: routes to targets/{missing}, which does not exist")
+    for unused in sorted(present - named):
+        errors.append(f"{name}: targets/{unused} exists but the skill never routes to it")
+
+
+def check_router_scope(path, name, scope, text, errors):
+    """A skill that routes on the environment has to be installed in all of them.
+
+    Two ways to get this wrong, and neither announces itself. Referencing [[environment]] says the
+    skill does not yet know where it is, which only a skill installed everywhere can ask; scoped,
+    it is missing from exactly the environment it was meant to identify, and nothing is left to
+    read the routing table and say so. Carrying a target named for another environment is the same
+    mistake at file level: that file is then unreachable, and a skill with a target per environment
+    is a router, so the scope is what is wrong rather than the target.
+    """
+    if scope == ENVIRONMENT_ANY:
+        return
+
+    if ENVIRONMENT_SKILL in REFERENCE.findall(text):
+        errors.append(
+            f"{name}: is {ENVIRONMENT_KEY}: {scope} but references [[{ENVIRONMENT_SKILL}]], so it "
+            f"routes on an environment it is not installed in"
+        )
+
+    for file in sorted((path / "targets").glob("*.md")):
+        if file.stem in ENVIRONMENT_TARGETS and file.stem != scope:
+            errors.append(
+                f"{name}: is {ENVIRONMENT_KEY}: {scope} but carries targets/{file.name}, which only "
+                f"the {file.stem} environment reads"
+            )
+
+
+def check_environment_references(skills_root, environments, errors):
+    """A skill may only reference one that is installed wherever it is.
+
+    An installer leaves out the skills scoped to another environment, so the file behind the
+    reference is simply absent there. Nothing expands a reference at runtime, and a missing one
+    does not announce itself: the model reads a rule it cannot load and carries on without it.
+    """
+    for name, scope in sorted(environments.items()):
+        for reference in sorted(references_of(skills_root, name)):
+            target = environments.get(reference, ENVIRONMENT_ANY)
+            if target in (ENVIRONMENT_ANY, scope):
+                continue
+            errors.append(
+                f"{name} ({ENVIRONMENT_KEY}: {scope}) references [[{reference}]] "
+                f"({ENVIRONMENT_KEY}: {target}), which is not installed there"
+            )
 
 
 def references_of(skills_root, name):
@@ -330,16 +458,18 @@ def check_skills(root, errors):
         errors.append(f"explicit-only-skills.txt: names {name!r}, which is not a skill")
 
     renderable = renderable_skills(root / "copy_prompt.py", errors)
-    audiences = {}
+    audiences, environments = {}, {}
     for name in sorted(skills):
-        check_skill(skills_root / name, name, skills, explicit, renderable, audiences, errors)
+        check_skill(skills_root / name, name, skills, explicit, renderable, audiences, environments, errors)
 
     check_prose_standard(skills_root, skills, audiences, errors)
+    check_environment_references(skills_root, environments, errors)
 
 
 def validate(root):
     errors = []
     check_no_commands(root, errors)
+    check_hook_registration(root, errors)
     check_manifests(root, errors)
     check_skills(root, errors)
     return errors

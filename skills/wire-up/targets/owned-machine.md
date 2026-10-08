@@ -38,9 +38,9 @@ Each of these fails at first use rather than at install time, so check every one
 1. `~/.local/bin` is on `PATH`, via `command -v git-land git-todo git-review-feedback`. If the files exist but the commands do not resolve, give the user the line to add to their shell rc and ask before editing it yourself.
 2. `git config --global user.email` is set. A fresh machine has none and every commit fails. Point at git-tools' `gitconfig.example` and let the user fill in their name, email and signing key. Never guess any of the three.
 3. `gh auth status` succeeds. Almost every skill drives `gh`.
-4. Every skill in `<claude-config>/skills/` is linked in both `~/.claude/skills/` and `~/.agents/skills/`. A skill added upstream only appears once the installer has run, which is the whole reason this skill exists: editing a skill takes effect immediately through the symlinks, adding or removing one does not.
+4. Every skill this environment gets is linked in both `~/.claude/skills/` and `~/.agents/skills/`. That is not the same as every directory under `<claude-config>/skills/`: one whose frontmatter scopes it to another environment is left out on purpose, and the installer reports which. Take the list to check against from `python3 <claude-config>/scripts/skills_for.py owned-machine`, never from the directory, or a correct install reads as a broken one. A skill added upstream only appears once the installer has run, which is the whole reason this skill exists: editing a skill takes effect immediately through the symlinks, adding or removing one does not.
 5. Both global-instruction slots point at this repo's `CLAUDE.md`, per the section above. A slot reading someone else's instructions is the one failure here that looks like nothing is wrong.
 
 ## Report
 
-Say what each repo pulled or that it was already current, what the installers changed — new links, pruned links, settings merged — and, last, whatever the user still has to do themselves. If nothing changed and every check passes, say that in one line.
+Say what each repo pulled or that it was already current, what the installers changed (new links, pruned links, skills left out as scoped to another environment, settings merged), and, last, whatever the user still has to do themselves. If nothing changed and every check passes, say that in one line.

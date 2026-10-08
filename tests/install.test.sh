@@ -20,6 +20,20 @@ skill_count="$(find "$repo_root/skills" -mindepth 1 -maxdepth 1 -type d | wc -l 
 
 new_home() { mktemp -d "$ROOT/home.XXXXXX"; }
 install_into() { HOME="$1" "$repo_root/install.sh"; }
+
+# A copy of the repo carrying one skill scoped to a single environment, so the selection runs
+# against a real scoped skill without one having to exist in the repo itself.
+repo_with_scoped_skill() {
+  local dir; dir="$(mktemp -d "$ROOT/repo.XXXXXX")"
+  cp -R "$repo_root/." "$dir/" 2>/dev/null
+  rm -rf "$dir/.git"
+  mkdir -p "$dir/skills/pod-only/agents"
+  printf -- '---\nname: pod-only\ndescription: Does the one thing only a pod can do.\nenvironment: devspaces\n---\n\nDo the pod thing.\n' \
+    > "$dir/skills/pod-only/SKILL.md"
+  printf 'interface:\n  display_name: "Pod only"\n  short_description: "Only works in a pod"\npolicy:\n  allow_implicit_invocation: true\n' \
+    > "$dir/skills/pod-only/agents/openai.yaml"
+  printf '%s' "$dir"
+}
 commands_in() {
   python3 -c "
 import json, sys
@@ -126,6 +140,68 @@ out="$(install_into "$h")"
 check "a broken skill link from elsewhere survives" "$(test -L "$h/.claude/skills/theirs" && echo kept)" "kept"
 check "a broken hook link from elsewhere survives" "$(test -L "$h/.claude/hooks/theirs.py" && echo kept)" "kept"
 check "nothing is reported as pruned" "$(echo "$out" | grep -c 'Pruned')" "0"
+
+# An installed skill spends its description on every session, so one that cannot run here is left
+# out rather than linked.
+echo "=== a skill scoped to another environment is not linked ==="
+r="$(repo_with_scoped_skill)"; h="$(new_home)"
+out="$(HOME="$h" CLAUDE_CONFIG_ENVIRONMENT=owned-machine "$r/install.sh")"
+check "the scoped skill is absent" \
+  "$(test -e "$h/.claude/skills/pod-only" && echo present || echo absent)" "absent"
+check "absent for Codex too" \
+  "$(test -e "$h/.agents/skills/pod-only" && echo present || echo absent)" "absent"
+check "the skills that run anywhere are still linked" "$(readlink "$h/.claude/skills/commit")" "$r/skills/commit"
+check "the environment is named in the report" "$(echo "$out" | grep -c 'for the owned-machine environment')" "1"
+check "leaving it out is reported" "$(echo "$out" | grep -c 'Left out 1 skill')" "1"
+
+echo "=== the same skill is linked in the environment it names ==="
+h="$(new_home)"
+out="$(HOME="$h" CLAUDE_CONFIG_ENVIRONMENT=devspaces "$r/install.sh")"
+check "it is linked there" "$(readlink "$h/.claude/skills/pod-only")" "$r/skills/pod-only"
+check "and for Codex there" "$(readlink "$h/.agents/skills/pod-only")" "$r/skills/pod-only"
+# The exclusion runs the other way too: land and todo are scoped to an owned machine, so a pod
+# gets neither. Counted from the repo, so scoping another skill later does not fail the suite.
+owned_only="$(python3 "$r/scripts/skills_for.py" devspaces --excluded | wc -l | tr -d ' ')"
+check "the owned-machine skills are left out instead" \
+  "$(echo "$out" | grep -c "Left out $owned_only skill")" "1"
+check "land is absent from a pod" \
+  "$(test -e "$h/.claude/skills/land" && echo present || echo absent)" "absent"
+check "todo is absent from a pod" \
+  "$(test -e "$h/.claude/skills/todo" && echo present || echo absent)" "absent"
+
+# The prune above only removes dangling links, and this target still exists, so an environment
+# that no longer wants the skill has to remove the link by name.
+echo "=== re-installing in another environment removes the link the first one made ==="
+out="$(HOME="$h" CLAUDE_CONFIG_ENVIRONMENT=owned-machine "$r/install.sh")"
+check "the link is gone" "$(test -e "$h/.claude/skills/pod-only" && echo present || echo absent)" "absent"
+check "the Codex link is gone too" \
+  "$(test -e "$h/.agents/skills/pod-only" && echo present || echo absent)" "absent"
+check "the unlink is reported once, not once per runtime" "$(echo "$out" | grep -c 'Unlinked pod-only')" "1"
+rm -rf "$r"
+
+# The script already knows where it is, so leaving a pod half-installed would be a choice. The
+# signal paths are faked here because the real ones are root-owned.
+echo "=== in a pod, the installer refuses rather than half-installing ==="
+h="$(new_home)"; fake_bin="$(mktemp -d "$ROOT/bin.XXXXXX")"
+printf '#!/bin/sh\nexit 0\n' > "$fake_bin/devspaces"; chmod +x "$fake_bin/devspaces"
+share="$(mktemp -d "$ROOT/share.XXXXXX")"; managed="$(mktemp -d "$ROOT/managed.XXXXXX")"
+out="$(HOME="$h" PATH="$fake_bin:$PATH" CLAUDE_CONFIG_SHARE_DIR="$share" \
+  CLAUDE_CONFIG_MANAGED_DIR="$managed" "$repo_root/install.sh" 2>&1)"; code=$?
+check "it exits non-zero" "$code" "1"
+check "it names the right tool instead" "$(echo "$out" | grep -c 'Run /wire-up instead')" "1"
+check "nothing was linked" "$(test -e "$h/.claude/skills" && echo present || echo absent)" "absent"
+check "no instruction slot was claimed" \
+  "$(test -e "$h/.claude/CLAUDE.md" && echo present || echo absent)" "absent"
+check "no settings.json was written" \
+  "$(test -e "$h/.claude/settings.json" && echo present || echo absent)" "absent"
+
+# Overriding the guess is a human naming the environment, which is not the same as asking to be
+# stopped, and it is how the cases above select an environment at all.
+h="$(new_home)"
+out="$(HOME="$h" PATH="$fake_bin:$PATH" CLAUDE_CONFIG_SHARE_DIR="$share" \
+  CLAUDE_CONFIG_MANAGED_DIR="$managed" CLAUDE_CONFIG_ENVIRONMENT=devspaces "$repo_root/install.sh")"
+check "an explicit environment installs anyway" "$(echo "$out" | grep -c 'for the devspaces environment')" "1"
+check "and the pod-only exclusions still apply" "$(echo "$out" | grep -c 'Left out')" "1"
 
 echo "=== a hook whose arguments changed upstream is updated in place ==="
 h="$(new_home)"; install_into "$h" >/dev/null
